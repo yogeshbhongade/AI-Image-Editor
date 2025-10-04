@@ -1,0 +1,418 @@
+/*
+ * pages.css
+ * Comprehensive styles for settings, help, and admin pages
+ * Extends base.css and style.css
+ */
+
+/* =====================
+   SETTINGS PAGE STYLES
+   ===================== */
+.s2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  min-width: 48px;
+  height: 28px;
+}
+.toggle input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.track {
+  width: 48px;
+  height: 28px;
+  background: var(--panel-2);
+  border-radius: 16px;
+  transition: background 0.2s;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.knob {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+  z-index: 2;
+}
+.toggle input:checked + .track {
+  background: var(--brand);
+}
+.toggle input:checked + .track + .knob {
+  transform: translateX(20px);
+}
+
+.profile-upload {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 2rem;
+  transition: border-color 0.2s;
+}
+.profile-upload:hover {
+  border-color: var(--brand);
+}
+.profile-upload input[type="file"] {
+  display: none;
+}
+
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+/* =====================
+   HELP PAGE STYLES
+   ===================== */
+.faq {
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  transition: box-shadow 0.2s;
+  overflow: hidden;
+}
+.faq[open] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.faq summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1.08rem;
+  color: var(--text);
+  background: none;
+  outline: none;
+  border: none;
+  transition: background 0.18s;
+  list-style: none;
+}
+.faq summary:hover {
+  background: var(--panel);
+}
+.faq summary p {
+  margin: 0;
+  flex: 1;
+  font-weight: 500;
+}
+.faq summary .caret {
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+  font-size: 1.1em;
+  color: var(--muted);
+}
+.faq[open] summary .caret {
+  transform: rotate(180deg);
+}
+.faq[open] {
+  border-color: var(--brand);
+}
+.faq-content {
+  padding: 1rem 1.5rem 1.25rem 2.5rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  background: none;
+}
+
+.tutorial-section {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+.tutorial-card {
+  min-width: 220px;
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.tutorial-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  transform: translateY(-2px) scale(1.02);
+}
+.help-page .thumb-video {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.help-page .help-block {
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.25rem;
+  margin-top: 2rem;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* =====================
+   ADMIN PAGE STYLES
+   ===================== */
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3rem 1.5rem;
+}
+.page-header {
+  margin-bottom: 2.5rem;
+}
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.stat-card {
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  transform: translateY(-2px) scale(1.02);
+}
+.stat-card i {
+  font-size: 2.1rem;
+  color: var(--brand);
+  margin-bottom: 0.5rem;
+}
+.stat-card .stat {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.stat-card .title {
+  font-size: 1.05rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.table th, .table td {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 1rem;
+}
+.table th {
+  background: var(--panel);
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.7em;
+  font-size: 0.92em;
+  border-radius: 1em;
+  font-weight: 600;
+  background: var(--panel);
+  color: var(--text);
+  margin-right: 0.25em;
+  vertical-align: middle;
+}
+.bg-success {
+  background: #2ecc40;
+  color: #fff;
+}
+.text-success {
+  color: #2ecc40 !important;
+}
+.text-center {
+  text-align: center !important;
+}
+.text-muted {
+  color: var(--muted) !important;
+}
+
+/* Card Components */
+.card {
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  transform: translateY(-2px) scale(1.01);
+}
+.card-body {
+  padding: 1.25rem 1.5rem;
+}
+.card-header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.card-header h4 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.col {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 0.75rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.action-buttons .btn {
+  min-width: 110px;
+  justify-content: center;
+}
+.btn-warning {
+  background: #ffb300;
+  color: #fff;
+  border: none;
+}
+.btn-warning:hover {
+  background: #ff9800;
+}
+.btn-info {
+  background: #2196f3;
+  color: #fff;
+  border: none;
+}
+.btn-info:hover {
+  background: #1976d2;
+}
+
+/* System Info & Quick Actions */
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+.system-status .dot {
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.4em;
+  background: #2ecc40;
+}
+.system-status.down .dot {
+  background: #e74c3c;
+}
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .page-wrapper {
+    padding: 1.5rem 0.5rem 2rem 0.5rem;
+  }
+  .card-body, .card-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+@media (max-width: 600px) {
+  .page-header {
+    margin-bottom: 1.2rem;
+  }
+  .header-content {
+    gap: 0.25rem;
+  }
+  .card-body, .card-header {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .faq-content {
+    padding-left: 1.25rem;
+    padding-right: 0.75rem;
+  }
+  .tutorial-section {
+    gap: 0.75rem;
+  }
+  .profile-upload {
+    padding: 1.25rem 0.5rem;
+  }
+}

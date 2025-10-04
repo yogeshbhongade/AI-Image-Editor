@@ -1,0 +1,29 @@
+/* downloads.css: Styles for download history page */
+.d-card { margin: 12px; box-shadow: 0 2px 8px #eee; border-radius: 8px; overflow: hidden; display: inline-block; width: 220px; vertical-align: top; }
+.thumb-square { width: 100%; height: 180px; background-size: cover; background-position: center; background-color: #f0f0f0; /* fallback color */ }
+.download-stats { margin: 24px 0; padding: 16px; background: #f8f9fa; border-radius: 8px; }
+.pagination { margin-top: 24px; }
+.alert-info { background: #e7f3fe; color: #31708f; padding: 12px; border-radius: 6px; }
+
+.downloads-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+.downloads-container {
+  padding: 16px;
+}
+.downloads-card-content {
+  padding-inline: 4px;
+}
+.downloads-pagination {
+  text-align: center;
+  padding: 20px;
+}
+.filters {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

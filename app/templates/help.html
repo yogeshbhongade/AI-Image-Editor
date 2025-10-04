@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Help{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="help-page">
+  <div class="row" style="justify-content:space-between; padding:16px;">
+    <div>
+      <p class="h1">Help Center</p>
+      <p class="lead">Find answers to common questions or contact our support team for assistance.</p>
+    </div>
+  </div>
+
+  <div style="padding:16px;">
+    <label class="search" aria-label="Search for help topics">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+      </svg>
+      <input type="text" placeholder="Search for help topics" />
+    </label>
+  </div>
+
+  <h2 class="h2" style="padding:20px 16px 12px;">Frequently Asked Questions</h2>
+  <div class="row" style="flex-direction:column; gap:12px; padding:0 16px 16px;">
+    <details class="faq">
+      <summary>
+        <p class="p">How do I upload an image?</p>
+        <svg class="caret icon-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+        </svg>
+      </summary>
+      <p class="small mt-1">Click the upload button on the home page or drag and drop an image into the upload area.</p>
+    </details>
+    <details class="faq">
+      <summary>
+        <p class="p">How can I undo an edit?</p>
+        <svg class="caret icon-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+        </svg>
+      </summary>
+      <p class="small mt-1">Use the undo button in the toolbar or press Ctrl/Cmd + Z.</p>
+    </details>
+    <details class="faq">
+      <summary>
+        <p class="p">Where can I find my edited images?</p>
+        <svg class="caret icon-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+        </svg>
+      </summary>
+      <p class="small mt-1">All your edited images are stored on the Downloads page.</p>
+    </details>
+  </div>
+
+  <h2 class="h2" style="padding:20px 16px 12px;">Tutorials</h2>
+  <div class="tutorial-section">
+    <div class="tutorial-card">
+      <div class="thumb-video" style='background-image:url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZ_i6mR85wFnhVaWoTGjXxkTd57fDPICgj0IOHQk07JThzlZrmtTTCyLWZCz6fXdILfl3m9w2noa62lQh8UkM1tpxB-K2JAZgLXND_6ardrcw1l8GUcq_NvFaJhK3YhsuJC3_ueGV578CGRCoFLVFtg0uy6BwkjEuOXLe1iglkZTrRKP28BDshyIGCOV3-SYs11xIQXyzPbYV-3o-38FEXD97TR8s-W-jGUsXcLIf0NstZCrgEW6rXZ0R_oGxZeWrOift22m4SWWg");'></div>
+      <p class="p mt-2">Getting Started with Editr</p>
+    </div>
+    <div class="tutorial-card">
+      <div class="thumb-video" style='background-image:url("https://lh3.googleusercontent.com/aida-public/AB6AXuDCxuZG8qh00NvnAOMrkKnY08uES0-XmQ35LyQIDcYKPK10r2hg2wXsNBx2FtmeRuM1h18CGI2-nc7ffrN5f2-2PdHjl9ZXmQ4fm_LkhvXqmsDFcNchBJ_do8cwZGJnqlEDIT-O7_krb_par32d97xJdm08xQRVGQhxrPS25ETLuKi216zI2TghxvSb_nwq46aeyQQWtzf8Lugv9ifER0VvFSXQt3fmhoN43DkQbEknryPP4bKM6pt87aCsFjr-G_HwfTdxlRMolQ7F");'></div>
+      <p class="p mt-2">Advanced Editing Techniques</p>
+    </div>
+    <div class="tutorial-card">
+      <div class="thumb-video" style='background-image:url("https://lh3.googleusercontent.com/aida-public/AB6AXuBy7BaPj_blB8Vyk6ZpxTz54wqMCgBfGg574l7Vjt8A7tE-1S8SoyktDLd3nTCYaHSj39BkTai90um_mmRV2LKGyh4-10rul-c8MUD752hKZcxc1YeYJecGSgqYyNt9WPc_pRDdboNOnzBe77bOVrMDKJe-k1TDBctVTYaV4shsgjy5auLxbrcjd63kmX2AmUFCj6-Jp4_lt_Zg0hO_DsAgEAx79MDKYgSPPY-z4g5vKgN3UlKMSN_yL_PnpSasS75cgSvte31_789v");'></div>
+      <p class="p mt-2">Troubleshooting Common Issues</p>
+    </div>
+  </div>
+
+  <h2 class="h2" style="padding:20px 16px 12px;">Contact Support</h2>
+  <p class="p help-block">If you need further assistance, please contact our support team. We're here to help!</p>
+  <div style="padding:12px 16px;">
+    <button class="btn btn-primary">Contact Support</button>
+  </div>
+</div>
+{% endblock %}

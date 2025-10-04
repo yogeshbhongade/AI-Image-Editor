@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#A78BFA">
+  <title>{% block title %}ImageCraft{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@600&display=swap"></noscript>
+  <!-- Font Awesome 6 CDN Performance Optimized -->
+  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  <link rel="dns-prefetch" href="//fonts.gstatic.com">
+  {% block head %}{% endblock %}
+  <script>
+    window.ScriptLoader = {
+      loaded: {},
+      markLoaded: function(name) {
+        this.loaded[name] = true;
+        console.log('[ScriptLoader] Loaded:', name);
+      },
+      check: function(name) {
+        if (!this.loaded[name]) {
+          console.warn('[ScriptLoader] Missing dependency:', name);
+        }
+      }
+    };
+  </script>
+  <script>
+    // Font Awesome load verification for both FA6 and FA5 syntax
+    window.addEventListener('DOMContentLoaded', function() {
+      function checkFA(className, label) {
+        var el = document.createElement('i');
+        el.className = className;
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        var style = window.getComputedStyle(el, '::before');
+        var ok = style && style.content && style.content !== 'none' && style.content !== '""';
+        if (!ok) {
+          console.error(`[FontAwesome] ${label} icons failed to load. Icons may not display. Class: ${className}`);
+        }
+        document.body.removeChild(el);
+      }
+      checkFA('fa-solid fa-check', 'FA6 solid');
+      checkFA('fas fa-check', 'FA5 solid');
+    });
+  </script>
+  <style>
+    .skip-link { position: absolute; left: -999px; top: auto; width: 1px; height: 1px; overflow: hidden; z-index: 9999; background: var(--brand, #A78BFA); color: #fff; padding: 8px 16px; border-radius: 8px; }
+    .skip-link:focus { left: 12px; top: 12px; width: auto; height: auto; outline: 2px solid #fff; }
+  </style>
+</head>
+<body data-logged-in="{{ g.user is not none|lower }}">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="app">
+    <header class="site-header" role="banner">
+      <div class="brand" aria-label="ImageCraft Home">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="brand-logo" style="height: 40px; width: auto; vertical-align: middle;">
+        <span class="brand-name">Image Editor</span>
+      </div>
+      <nav class="nav" aria-label="Primary Navigation">
+        <a href="/" {% if request.path == '/' %}class="active" aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('auth.profile') }}" {% if request.endpoint == 'auth.profile' %}class="active" aria-current="page"{% endif %}>Profile</a>
+        <a href="{{ url_for('core.downloads') }}" {% if request.endpoint == 'core.downloads' %}class="active" aria-current="page"{% endif %}>Downloads</a>
+        <a href="{{ url_for('core.settings') }}" {% if request.endpoint == 'core.settings' %}class="active" aria-current="page"{% endif %}>Settings</a>
+        <a href="{{ url_for('core.help_page') }}" {% if request.endpoint == 'core.help_page' %}class="active" aria-current="page"{% endif %}>Help</a>
+      </nav>
+      <div class="header-right">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn--logout">Log Out</a>
+        <div class="avatar avatar--header" style='background-image:url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsPp3GKFiiK6K0nrNxposzLIWAgJO8xXcTmBj2pi3Ai16zXBK0buCf29ukp5JaVtZ4j_YiIBqfUym6K7NcUgIA2nArivamoFmaBXU1ZWJwpulEnU9SlPgffm3fuQKc3lvJKHsvd8yf8ns1ON2lIDg1hutHUXlgnSbfFG_RGHOeW60O6xOnd9CC9iKaXSvJ88_U6zVZGlDiiI8o4oVEudcCAj8cB6fFZhmoAlsxDsP8EOrijqm7ljJXqL6gCQ0K9ozCOngZZirRQKqr");'></div>
+      </div>
+    </header>
+    <main class="main" id="main-content">
+      <div class="container content">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

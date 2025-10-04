@@ -1,0 +1,210 @@
+/*
+ * style.css
+ * Global header and navigation styles for ImageCraft
+ * Part of the modular CSS architecture:
+ * 1. base.css - Foundational styles and CSS variables
+ * 2. style.css - Global header/navigation (this file)
+ * 3. [page].css - Page-specific styles
+ */
+
+/* ======================
+   SITE HEADER
+   ====================== */
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6, 32px);
+  padding: var(--space-4, 16px) var(--space-8, 48px);
+  border-bottom: 1.5px solid var(--border);
+  background: var(--surface-glass, rgba(30,30,40,0.65));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 18px));
+  backdrop-filter: blur(var(--glass-blur, 18px));
+  box-shadow: var(--shadow-md);
+  border-radius: 0 0 var(--radius) var(--radius);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background 0.22s, box-shadow 0.22s;
+}
+
+/* Brand wrapper */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  color: var(--text-primary);
+}
+
+/* Logo image */
+.brand-logo {
+  display: inline-block;
+  height: 44px;
+  width: auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  background: var(--surface-elevated);
+}
+
+.brand-name {
+  font-weight: var(--font-bold, 800);
+  letter-spacing: 3px;
+  font-size: var(--fs-xl, 2.2rem);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-emphasis-color: transparent;
+  transition: letter-spacing 0.18s, text-shadow 0.18s;
+  text-shadow: 0 2px 8px #a78bfa22;
+}
+
+.brand-name:hover {
+  letter-spacing: 5px;
+  text-shadow: 0 4px 16px #a78bfa44;
+}
+
+/* Main Navigation
+   ----------------- */
+.nav {
+  display: flex;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.nav a {
+  font-size: var(--fs-md, 1.18rem);
+  font-weight: 600;
+  padding: var(--space-2, 8px) var(--space-4, 16px);
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--text-primary);
+  transition: background var(--duration-fast), color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
+  outline: none;
+  position: relative;
+}
+
+.nav a:focus {
+  box-shadow: 0 0 0 3px var(--brand, #a78bfa55);
+  background: var(--panel-2);
+  color: var(--brand);
+}
+
+.nav a.active, .nav a[aria-current="page"] {
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+.nav a:hover {
+  background: var(--gradient-accent);
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px #a78bfa22;
+}
+
+.nav a i {
+  font-size: 1.2em;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* Header Right Section
+   ----------------- */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  margin-left: auto;
+}
+
+.btn--logout {
+  min-inline-size: 120px;
+  color: #fff;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+
+.btn--logout:hover, .btn--logout:focus {
+  background: var(--gradient-accent);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.avatar--header {
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: 999px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--surface-overlay, #2a2a3a);
+  transition: box-shadow 0.18s, border 0.18s;
+}
+
+.avatar--header:hover, .avatar--header:focus {
+  box-shadow: var(--shadow-md);
+  border-color: var(--brand, #a78bfa);
+}
+
+/* ====================
+   ACCESSIBILITY & REDUCED MOTION
+   ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .nav a, .btn--logout, .brand-name, .avatar--header {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ====================
+   RESPONSIVE LAYOUT
+   ==================== */
+@media (max-width: 900px) {
+  .site-header {
+    padding: var(--space-3, 12px) var(--space-5, 24px);
+    gap: var(--space-4, 16px);
+  }
+  .brand-name {
+    font-size: var(--fs-lg, 1.35rem);
+  }
+  .nav a {
+    font-size: var(--fs-sm, 1.05rem);
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+  }
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    gap: var(--space-2, 8px);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  .brand-logo {
+    height: 32px;
+  }
+  .brand-name {
+    font-size: var(--fs-md, 1.18rem);
+  }
+  .nav {
+    gap: var(--space-2, 8px);
+  }
+  .nav a {
+    font-size: var(--fs-xs, 0.92rem);
+    padding: var(--space-1, 4px) var(--space-2, 8px);
+  }
+  .btn--logout {
+    min-inline-size: 90px;
+    height: 36px;
+    padding: 0 var(--space-2, 8px);
+  }
+  .avatar--header {
+    inline-size: 36px;
+    block-size: 36px;
+  }
+}

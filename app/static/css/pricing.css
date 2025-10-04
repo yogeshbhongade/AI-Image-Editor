@@ -1,0 +1,230 @@
+/* Pricing and Subscription Management Styles for ImageCraft */
+
+.pricing-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+  margin: 40px auto 0 auto;
+  max-width: 900px;
+}
+
+.pricing-card {
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 32px 28px 28px 28px;
+  min-width: 300px;
+  max-width: 350px;
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+}
+.pricing-card.featured {
+  border: 2px solid var(--brand);
+  box-shadow: 0 8px 32px rgba(80,80,120,0.18);
+  transform: scale(1.04);
+  z-index: 2;
+}
+.pricing-header {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--brand);
+}
+.pricing-price {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.pricing-subtitle {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+  text-align: center;
+}
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+  width: 100%;
+}
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+.feature-included {
+  color: #2ecc40;
+}
+.feature-excluded {
+  color: #aaa;
+  text-decoration: line-through;
+}
+.payment-btn {
+  background: linear-gradient(90deg, var(--brand), #6e4cff);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 32px;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(80,80,120,0.10);
+  outline: none;
+}
+.payment-btn:hover:not(:disabled) {
+  background: linear-gradient(90deg, #6e4cff, var(--brand));
+  box-shadow: 0 4px 18px rgba(80,80,120,0.16);
+}
+.payment-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.payment-btn.loading {
+  position: relative;
+  pointer-events: none;
+}
+.payment-btn.loading:after {
+  content: '';
+  border: 3px solid #fff;
+  border-top: 3px solid var(--brand);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+.subscription-status {
+  margin-bottom: 18px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-active {
+  color: #2ecc40;
+}
+.status-cancelled {
+  color: #ff9800;
+}
+.status-expired {
+  color: #e74c3c;
+}
+.feature-comparison {
+  width: 100%;
+  margin: 32px auto 0 auto;
+  border-collapse: collapse;
+}
+.feature-comparison th, .feature-comparison td {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 1rem;
+}
+.feature-comparison th {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 700;
+}
+.feature-comparison tr:nth-child(even) {
+  background: var(--bg);
+}
+.feature-comparison .fa-check {
+  color: #2ecc40;
+}
+.feature-comparison .fa-times {
+  color: #e74c3c;
+}
+@media (max-width: 900px) {
+  .pricing-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .pricing-card {
+    min-width: 90vw;
+    max-width: 98vw;
+  }
+}
+
+/* Subscription Management Styles */
+.subscription-card {
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  margin: 32px auto;
+  max-width: 600px;
+}
+.billing-info {
+  margin-top: 18px;
+  font-size: 1.05rem;
+}
+.usage-stats {
+  margin-top: 18px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.usage-stat {
+  flex: 1 1 120px;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.action-buttons {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+}
+.cancellation-modal, .confirmation-dialog {
+  background: var(--panel);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 32px 24px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.modal-content {
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+}
+@media (max-width: 600px) {
+  .subscription-card, .cancellation-modal, .confirmation-dialog {
+    padding: 18px 8px;
+  }
+  .usage-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

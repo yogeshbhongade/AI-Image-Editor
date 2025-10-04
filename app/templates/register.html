@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Register - ImageCraft{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+ <div class="auth-card">
+ <div class="auth-header">
+ <h2>Create Account</h2>
+ <p>
+                Join ImageCraft and start editing!</p>
+ </div>
+
+<form id="register-form" class="auth-form" method="POST">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ <div class="form-group">
+ <label for="first_name">First Name *</label>
+ <input type="text" id="first_name" name="first_name" required class="input">
+ </div>
+
+ <div class="form-group">
+ <label for="last_name">Last Name</label>
+ <input type="text" id="last_name" name="last_name" class="input">
+ </div>
+
+ <div class="form-group">
+ <label for="email">Email *</label>
+ <input type="email" id="email" name="email" required class="input">
+ </div>
+ 
+ <div class="form-group">
+ <label for="username">Username *</label>
+ <input type="text" id="username" name="username" required class="input">
+ <small>Only letters, numbers, and underscores allowed</small>
+ </div>
+
+ <div class="form-group">
+ <label for="reg_password">Password *</label>
+ <div class="password-field-wrapper">
+ <input type="password" id="reg_password" name="password" required class="input" autocomplete="new-password">
+ <button type="button" onclick="togglePassword(this, 'reg_password' )" class="password-toggle" title="Show or hide password">
+ <i class="fa-solid fa-eye"></i>
+ </button>
+ </div>
+ </div>
+
+ <div class="form-group">
+ <label for="confirm_password">Confirm Password *</label>
+ <div class="password-field-wrapper">
+ <input type="password" id="confirm_password" name="confirm_password" required class="input" autocomplete="new-password">
+ <button type="button" onclick="togglePassword(this, 'confirm_password' )" class="password-toggle" title="Show or hide password">
+ <i class="fa-solid fa-eye"></i>
+ </button>
+ </div>
+ </div>
+
+ <button type="submit" class="btn btn-primary btn-lg w-100">Create Account</button>
+ </form>
+
+ <div class="auth-footer">
+ <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a></p>
+ </div>
+ </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

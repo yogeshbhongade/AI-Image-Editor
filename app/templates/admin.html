@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - ImageCraft{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <main class="content">
+    <section class="page-header">
+      <div class="header-content">
+        <h1><i class="fa-solid fa-chart-bar"></i> Admin Dashboard</h1>
+        <p class="lead">System overview and user management</p>
+      </div>
+    </section>
+
+    <!-- System Statistics -->
+    <section>
+      <h2>System Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fa-solid fa-users"></i>
+          <p class="stat">{{ total_users }}</p>
+          <p class="title">Total Users</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-upload"></i>
+          <p class="stat">{{ total_uploads }}</p>
+          <p class="title">Total Uploads</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <p class="stat">{{ total_processed }}</p>
+          <p class="title">Processed Images</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-server"></i>
+          <p class="stat">Active</p>
+          <p class="title">System Status</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Users -->
+    <section>
+      <h2>Recent Users</h2>
+      <div class="card">
+        <div class="card-body">
+          {% if recent_users %}
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Full Name</th>
+                  <th>Joined</th>
+                  <th>Last Login</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in recent_users %}
+                <tr>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.get('first_name', '') }} {{ user.get('last_name', '') }}</td>
+                  <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'Unknown' }}</td>
+                  <td>{{ user.get('last_login', {}).strftime('%Y-%m-%d %H:%M') if user.get('last_login') else 'Never' }}</td>
+                  <td>
+                    <span class="badge bg-success">{{ 'Active' if user.get('is_active', True) else 'Inactive' }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-muted">No users found.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- System Information -->
+    <section>
+      <h2>System Information</h2>
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h4>Database Status</h4>
+            </div>
+            <div class="card-body">
+              <p><strong>Connection:</strong> <span class="text-success">Connected</span></p>
+              <p><strong>Collections:</strong> users, uploads, processed</p>
+              <p><strong>Database:</strong> image_editor</p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-header">
+              <h4>Storage Information</h4>
+            </div>
+            <div class="card-body">
+              <p><strong>Upload Directory:</strong> /uploads</p>
+              <p><strong>Processed Directory:</strong> /processed</p>
+              <p><strong>Total Files:</strong> {{ total_uploads + total_processed }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section>
+      <h2>Quick Actions</h2>
+      <div class="action-buttons">
+        <button class="btn btn-warning" onclick="alert('Feature coming soon!')">
+          <i class="fa-solid fa-broom"></i> Clean Old Files
+        </button>
+        <button class="btn btn-info" onclick="alert('Feature coming soon!')">
+          <i class="fa-solid fa-download"></i> Export User Data
+        </button>
+        <button class="btn btn-secondary" onclick="alert('Feature coming soon!')">
+          <i class="fa-solid fa-chart-simple"></i> Generate Report
+        </button>
+        <a href="{{ url_for('core.dashboard') }}" class="btn btn-primary">
+          <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

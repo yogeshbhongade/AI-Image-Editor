@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - ImageCraft{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <main class="content">
+    <!-- User Welcome Section -->
+    <section class="profile-header">
+      {% set uname = (current_user.username or '') %}
+      {% set initials = (uname[:2].upper() if uname|length > 0 else '?') %}
+      <div class="avatar-lg">{{ initials }}</div>
+      <h2>Welcome back, {{ current_user.first_name or current_user.username }}!</h2>
+      <p class="subtitle">{{ current_user.email }}</p>
+    </section>
+
+    <!-- Quick Stats -->
+    <section>
+      <h2>Your Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fa-solid fa-images"></i>
+          <p class="stat">{{ upload_count or 0 }}</p>
+          <p class="title">Images Uploaded</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <p class="stat">{{ processed_count or 0 }}</p>
+          <p class="title">Images Edited</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-clock"></i>
+          <p class="stat">{{ recent_uploads|length }}</p>
+          <p class="title">Recent Uploads</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section>
+      <h2>Quick Actions</h2>
+      <div class="action-buttons">
+        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Upload & Edit New Image
+        </a>
+        <a href="{{ url_for('upload.my_images') }}" class="btn btn-secondary">
+          <i class="fa-solid fa-folder-open"></i> View My Images
+        </a>
+        <a href="{{ url_for('core.downloads') }}" class="btn btn-secondary">
+          <i class="fa-solid fa-download"></i> Downloads
+        </a>
+      </div>
+    </section>
+
+    <!-- Recent Images -->
+    {% if recent_processed %}
+    <section>
+      <h2>Recently Edited Images</h2>
+      <div class="grid-responsive">
+        {% for image in recent_processed[:6] %}
+        <div class="card">
+          <div class="thumb-square" style='background-image:url("{{ url_for('upload.show_processed', filename=image.processed_filename) }}");'></div>
+          <p class="small">{{ image.operation|title }}</p>
+          <p class="tiny">{{ image.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if not recent_processed %}
+    <section class="empty-state">
+      <div class="empty-state-content">
+        <i class="fa-solid fa-image icon"></i>
+        <h3 class="title">No images edited yet</h3>
+        <p class="subtitle">Start by uploading and editing your first image!</p>
+        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Get Started
+        </a>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

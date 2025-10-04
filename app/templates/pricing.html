@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Pricing & Upgrade - ImageCraft{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pricing.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="pricing-container">
+  <div class="pricing-card">
+    <div class="pricing-header">Free</div>
+    <div class="pricing-price">₹0<span class="pricing-subtitle">/month</span></div>
+    <ul class="feature-list">
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Basic editing tools</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> AI editing (limited)</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Session history (24h)</li>
+      <li class="feature-item feature-excluded"><i class="fa-solid fa-lock"></i> Permanent history</li>
+      <li class="feature-item feature-excluded"><i class="fa-solid fa-lock"></i> Unlimited undo/redo</li>
+      <li class="feature-item feature-excluded"><i class="fa-solid fa-lock"></i> Priority AI editing</li>
+      <li class="feature-item feature-excluded"><i class="fa-solid fa-lock"></i> Early access features</li>
+    </ul>
+    {% if current_user.is_authenticated and current_user.subscription_status == 'free' %}
+      <div class="subscription-status status-active">Current Plan</div>
+    {% endif %}
+  </div>
+  <div class="pricing-card featured">
+    <div class="pricing-header">Premium</div>
+    <div class="pricing-price">₹299<span class="pricing-subtitle">/month</span></div>
+    <ul class="feature-list">
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> All Free features</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Permanent edit history</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Unlimited undo/redo</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Priority AI editing</li>
+      <li class="feature-item feature-included"><i class="fa-solid fa-check"></i> Early access to new features</li>
+    </ul>
+    {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}
+      <div class="subscription-status status-active">Active</div>
+      <a href="/subscription/manage" class="payment-btn">Manage Subscription</a>
+    {% else %}
+      <button class="payment-btn" id="upgrade-btn" type="button"
+        data-razorpay-key-id="{{ razorpay_key_id|safe }}"
+        data-user-authenticated="{{ '1' if current_user.is_authenticated else '0' }}"
+        data-subscription-status="{{ current_user.subscription_status if current_user.is_authenticated else '' }}"
+        data-success-url="{{ success_url }}"
+        data-cancel-url="{{ cancel_url }}"
+        data-plan-id="{{ razorpay_premium_plan_id }}"
+      >Upgrade to Premium</button>
+    {% endif %}
+    <div class="payment-security">
+      <!--<img src="https://razorpay.com/static/assets/payment-methods.svg" alt="Payment Methods" style="max-width:180px; margin-top:10px;" />-->
+      <div class="small" style="color:#888; margin-top:4px;">Secured by Razorpay</div>
+    </div>
+  </div>
+</div>
+<div class="feature-comparison-wrapper">
+  <table class="feature-comparison">
+    <tr>
+      <th>Feature</th>
+      <th>Free</th>
+      <th>Premium</th>
+    </tr>
+    <tr>
+      <td>Edit history retention</td>
+      <td>24 hours</td>
+      <td>Forever</td>
+    </tr>
+    <tr>
+      <td>AI editing</td>
+      <td>Limited</td>
+      <td>Priority</td>
+    </tr>
+    <tr>
+      <td>Undo/Redo</td>
+      <td>Session only</td>
+      <td>Unlimited</td>
+    </tr>
+    <tr>
+      <td>Support</td>
+      <td>Community</td>
+      <td>Priority</td>
+    </tr>
+  </table>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+{% endblock %}

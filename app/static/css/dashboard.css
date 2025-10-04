@@ -1,0 +1,191 @@
+/* =====================
+   DASHBOARD & PROFILE CSS
+   ===================== */
+
+/* Page Layout */
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 48px 16px;
+}
+
+/* Profile Header Section */
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
+}
+.avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.tiny {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* Statistics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px 18px 18px 18px;
+  text-align: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.stat-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(80,80,120,0.10);
+}
+.stat-card i {
+  font-size: 2.2rem;
+  color: var(--brand);
+  margin-bottom: 8px;
+}
+.stat-card .stat {
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+  color: var(--text);
+}
+.stat-card .title {
+  color: var(--muted);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+.action-buttons .btn {
+  min-width: 140px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 12px 0;
+}
+
+/* Card Components */
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.card:hover {
+  box-shadow: 0 6px 24px rgba(80,80,120,0.10);
+  transform: translateY(-2px);
+}
+.card-body {
+  padding: 24px 20px;
+}
+.page-wrapper .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.page-wrapper .col {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  text-align: center;
+}
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.empty-state .icon {
+  font-size: 3.5rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.empty-state .title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.empty-state .subtitle {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+/* Recent Images Grid */
+.grid-responsive {
+  gap: 18px;
+}
+.card .thumb-square {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: var(--radius-sm);
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 12px;
+}
+
+/* Typography Extensions */
+.text-muted {
+  color: var(--muted);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .page-wrapper .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+@media (max-width: 600px) {
+  .page-wrapper {
+    padding: 12px 2vw 32px 2vw;
+  }
+  .card-body {
+    padding: 14px 6px;
+  }
+  .action-buttons .btn {
+    min-width: 100px;
+    font-size: 0.98rem;
+    padding: 10px 0;
+  }
+}

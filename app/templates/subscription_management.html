@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Manage Subscription - ImageCraft{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pricing.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="subscription-card">
+  <h2>Subscription Details</h2>
+  {% set ui_status = 'active' if payment_status == 'active' else payment_status %}
+  <div class="subscription-status status-{{ ui_status }}">
+    {{ ui_status|capitalize }}
+  </div>
+  <div class="billing-info">
+    <div><strong>Plan:</strong> {{ plan_name }}</div>
+    <div><strong>Subscription ID:</strong> {{ subscription_id or 'N/A' }}</div>
+    <div><strong>Start Date:</strong> {{ subscription_start_date or 'N/A' }}</div>
+    <div><strong>End Date:</strong> {{ subscription_end_date or 'N/A' }}</div>
+    <div><strong>Next Billing Date:</strong> {{ next_billing_date or 'N/A' }}</div>
+    <div><strong>Payment Status:</strong> {{ payment_status|capitalize }}</div>
+  </div>
+  <div class="usage-stats">
+    <div class="usage-stat">
+      <div class="stat-label">Permanent Edits</div>
+      <div class="stat-value">{{ permanent_edits or 0 }}</div>
+    </div>
+    <div class="usage-stat">
+      <div class="stat-label">AI Edits</div>
+      <div class="stat-value">{{ ai_edits or 0 }}</div>
+    </div>
+    <div class="usage-stat">
+      <div class="stat-label">Storage Used</div>
+      <div class="stat-value">{{ storage_used or '0 MB' }}</div>
+    </div>
+  </div>
+  <div class="action-buttons">
+    {% if subscription_status == 'active' %}
+      <button class="payment-btn" id="cancel-sub-btn">Cancel Subscription</button>
+    {% elif subscription_status == 'cancelled' %}
+      <button class="payment-btn" id="reactivate-sub-btn">Reactivate Subscription</button>
+    {% endif %}
+    <a href="/pricing" class="payment-btn" style="background:#eee; color:#333;">Back to Pricing</a>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+<script>
+  document.getElementById('cancel-sub-btn')?.addEventListener('click', function() {
+    if (confirm('Are you sure you want to cancel your subscription?')) {
+      PaymentManager.cancelSubscription(function() { window.location.reload(); });
+    }
+  });
+  document.getElementById('reactivate-sub-btn')?.addEventListener('click', function() {
+    PaymentManager.reactivateSubscription(function() { window.location.reload(); });
+  });
+</script>
+{% endblock %}

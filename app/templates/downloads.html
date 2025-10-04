@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Downloads{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/downloads.css') }}" />
+{% endblock %}
+{% block content %}
+  <div id="downloads-root" data-processed-template="{{ url_for('upload.show_processed', filename='__FILENAME__') }}">
+    <div class="downloads-header">
+      <h1 class="h1"><i class="fa-solid fa-download"></i>Downloads</h1>
+    </div>
+    <div id="download-filters" class="filters">
+      <input type="text" id="download-search" placeholder="Search filename/type">
+      <input type="date" id="download-start">
+      <input type="date" id="download-end">
+      <button id="download-export" class="btn btn-sm btn-primary" type="button">Export CSV</button>
+    </div>
+    {% if downloads|length == 0 %}
+      <div class="alert alert-info">No download history found.</div>
+    {% else %}
+      <div class="downloads-container Card-main" data-ajax-init="true">
+        {% for d in downloads %}
+        <div class="d-card">
+          <div class="thumb-square" data-bg-url="{{ url_for('upload.show_processed', filename=d.filename) }}">
+            <noscript><img src="{{ url_for('upload.show_processed', filename=d.filename) }}" alt="{{ d.filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
+          </div>
+          <div class="downloads-card-content mt-2">
+            <p class="p">{{ d.filename }}</p>
+            <p class="small">Downloaded on {{ d.download_timestamp|default('') }}</p>
+            <p class="small">Type: {{ d.file_type }}, Size: {{ d.file_size|default(0) }} bytes</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="downloads-pagination pagination">
+        {% if page > 1 %}
+          <a href="#" data-page="{{ page-1 }}">&laquo; Prev</a>
+        {% endif %}
+        <span>Page {{ page }}</span>
+        {% if (page * per_page) < total %}
+          <a href="#" data-page="{{ page+1 }}">Next &raquo;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="download-stats" id="download-stats"></div>
+    <script src="{{ url_for('static', filename='js/downloads.js') }}"></script>
+  </div>
+{% endblock %}

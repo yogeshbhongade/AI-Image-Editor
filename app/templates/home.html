@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}" />
+<style>
+  .page-wrapper {
+    overflow-x: hidden;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <main class="content">
+
+    <!-- Hero Section -->
+    <section class="hero"
+      style='background-image: linear-gradient(rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.7) 100%), url("../static/Images/main_img.jpg")'>
+      <h1>Unleash Your Creativity with ImageCraft</h1>
+      <p>Transform your photos with our powerful and intuitive editing tools. From basic adjustments to advanced
+        effects, ImageCraft offers everything you need to bring your vision to life.</p>
+      <!-- Upload & Edit Button -->
+      <a id="uploadEditBtn" class="btn btn-primary" href="{{ url_for('upload.editing') }}">
+        Upload and Edit
+      </a>
+
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const loggedIn = document.body.dataset.loggedIn === 'true';
+          const uploadBtn = document.getElementById("uploadEditBtn");
+          const imageInput = document.getElementById("imageInput");
+          const modal = document.getElementById('login-modal');
+   
+          if (uploadBtn) {
+            uploadBtn.addEventListener("click", function () {
+              if (!loggedIn) {
+                modal.style.display = "block";
+              } else {
+                imageInput.click();
+              }
+            });
+          }
+   
+          if (imageInput) {
+            imageInput.addEventListener("change", function () {
+              if (this.files.length > 0) {
+                document.getElementById("uploadForm").submit();
+              }
+            });
+          }
+        });
+      </script>
+
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section full-width">
+      <h2>What Our Users Say</h2>
+      <div class="card-container">
+        <div class="card">
+          <div class="thumb-square" style='background-image:url("../static/Images/user1.jpg");'></div>
+          <p>"ImageCraft has completely transformed my photography workflow. The intuitive interface and powerful tools
+            make editing a breeze!"</p>
+          <p class="subtitle">Sophia Carter, Professional Photographer</p>
+        </div>
+        <div class="card">
+          <div class="thumb-square" style='background-image:url("../static/Images/user2.jpg");'></div>
+          <p>"I've tried many photo editors, but ImageCraft stands out with its advanced features and ease of use. It's
+            a game-changer for both beginners and pros."</p>
+          <p class="subtitle">Ethan Bennett, Graphic Designer</p>
+        </div>
+        <div class="card">
+          <div class="thumb-square" style='background-image:url("../static/Images/user3.jpg");'></div>
+          <p>"The quality of edits I can achieve with ImageCraft is unmatched. It's my go-to tool for all my photo
+            editing needs!"</p>
+          <p class="subtitle">Nia Hayes, Social Media Influencer</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+{% endblock %}

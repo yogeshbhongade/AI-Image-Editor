@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Image Editor - ImageCraft{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="editor-container" data-subscription="{{ current_user.subscription_status if current_user.is_authenticated else 'free' }}">
+  <!-- Top Bar -->
+  <div class="editor-top-bar">
+    <div class="editor-title">Editing Panel</div>
+    <div class="subscription-status">
+      {% if current_user.is_authenticated %}
+        <span class="subscription-badge {{ 'premium' if current_user.subscription_status == 'premium' else 'free' }}" aria-label="Subscription status">
+          {{ current_user.subscription_status|capitalize }}
+        </span>
+        {% if current_user.subscription_status != 'premium' %}
+          <span class="upgrade-prompt inline">Upgrade to <a href="/pricing" class="upgrade-btn">Premium</a> for permanent history</span>
+        {% endif %}
+      {% endif %}
+    </div>
+    
+    <div class="usage-counters">
+      <span id="usage-edit-count" class="usage-counter" title="Edits today"></span>
+      <span id="usage-ai-count" class="usage-counter" title="AI edits today"></span>
+      <span id="usage-download-count" class="usage-counter" title="Downloads today"></span>
+    </div>
+  </div>
+
+  <div class="editor-main">
+
+    <!-- Left Sidebar with Tabs -->
+    <div class="editor-sidebar">
+      <div class="sidebar-header">Editing Tools</div>
+      <div class="tabs tabs-segmented">
+        <button class="tab-btn active" data-tab="basic">Basic</button>
+        <button class="tab-btn" data-tab="filters">Filters</button>
+        {% if filename %}
+        <button class="tab-btn" data-tab="ai">AI</button>
+        {% endif %}
+      </div>
+
+      <!-- Basic Tab -->
+      <div class="tab-content active" id="basic">
+        <div class="panel-content">
+          <div class="tool-grid">
+            <button class="tool-btn" data-op="rotate" data-value="90"><i class="fa-solid fa-rotate-right"></i><span>Rotate</span></button>
+            <button class="tool-btn" data-op="flip_h"><i class="fa-solid fa-arrows-left-right"></i><span>Flip H</span></button>
+            <button class="tool-btn" data-op="flip_v"><i class="fa-solid fa-arrows-up-down"></i><span>Flip V</span></button>
+            <button class="tool-btn" data-op="crop"><i class="fa-solid fa-crop"></i><span>Crop</span></button>
+            <button class="tool-btn tool-btn-full" data-op="resize"><i class="fa-solid fa-maximize"></i><span>Resize</span></button>
+          </div>
+
+          <div class="tool-grid mt-3">
+            <button class="tool-btn" data-op="rotate" data-value="-90"><i class="fa-solid fa-rotate-left"></i><span>Rotate Left</span></button>
+            <button class="tool-btn" data-op="grayscale"><i class="fa-solid fa-palette"></i><span>Grayscale</span></button>
+          </div>
+
+          <button class="btn btn-download"><i class="fa-solid fa-download"></i> Download</button>
+        </div>
+      </div>
+
+      <!-- Filters Tab -->
+      <div class="tab-content" id="filters">
+        <div class="panel-content">
+          <div class="filter-group">
+            <div class="filter-label">Brightness: 1.0</div>
+            <input type="range" min="0" max="2" step="0.1" value="1.0">
+            <button class="apply-btn apply-brightness" data-op="brightness">Apply</button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">Contrast: 1.0</div>
+            <input type="range" min="0" max="2" step="0.1" value="1.0">
+            <button class="apply-btn apply-contrast" data-op="contrast">Apply</button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">Saturation: 1.0</div>
+            <input type="range" min="0" max="2" step="0.1" value="1.0">
+            <button class="apply-btn apply-saturation" data-op="saturation">Apply</button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">Sharpness: 1.0</div>
+            <input type="range" min="0" max="2" step="0.1" value="1.0">
+            <button class="apply-btn apply-sharpness" data-op="sharpness">Apply</button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">Blur Radius: 2.0</div>
+            <input type="range" min="0" max="10" step="0.1" value="2.0">
+            <button class="apply-btn apply-blur" data-op="blur">Apply</button>
+          </div>
+
+          <div class="filter-buttons">
+            <button class="btn btn-filter btn-sharpen" data-op="sharpen">Sharpen</button>
+            <button class="btn btn-filter btn-emboss" data-op="emboss">Emboss</button>
+            <button class="btn btn-filter btn-edges" data-op="edges">Edges</button>
+            <button class="btn btn-filter btn-enhance" data-op="enhance">Enhance</button>
+          </div>
+
+          <div class="footer-actions">
+            <button class="btn btn-secondary" onclick="ImageEditor.undoLastOperation()" id="undo-btn"><i class="fa-solid fa-undo"></i> Undo <span class="shortcut-hint">Ctrl+Z</span></button>
+            <button class="btn btn-secondary" onclick="ImageEditor.redoLastOperation()" id="redo-btn"><i class="fa-solid fa-redo"></i> Redo <span class="shortcut-hint">Ctrl+Y</span></button>
+          </div>
+          <div class="history-status" id="history-status" aria-live="polite">
+            {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}
+              <span class="history-status permanent">Permanent history</span>
+            {% else %}
+              <span class="history-status temporary">Session history (24 hours)</span>
+              <span class="history-expiration">Edits expire after 24h. <a href="/pricing" class="upgrade-btn">Upgrade</a> for permanent history.</span>
+            {% endif %}
+          </div>
+          <div class="history-panel" id="history-panel" style="display:none;"></div>
+          <div id="session-indicator" class="session-indicator" style="display:none;">New Session</div>
+          <button class="btn btn-download"><i class="fa-solid fa-download"></i> Download</button>
+        </div>
+      </div>
+
+      {% if filename %}
+      <!-- AI Tab -->
+      <div class="tab-content" id="ai">
+        <div class="panel-content">
+          <label for="ai-command" class="ai-label">AI Command</label>
+          <textarea id="ai-command" maxlength="250" placeholder="Describe how you want to edit the image..." aria-label="AI edit prompt"></textarea>
+          <div class="ai-controls">
+            <label for="ai-strength">Strength</label>
+            <input type="range" id="ai-strength" min="0.1" max="1.0" step="0.05" value="0.75">
+            <span id="ai-strength-value">0.75</span>
+            <label for="ai-steps">Steps</label>
+            <input type="number" id="ai-steps" min="10" max="50" value="30" style="width:60px;">
+            <span class="ai-char-count" id="ai-char-count">0/250</span>
+          </div>
+          <button class="btn btn-ai-edit" disabled>AI Edit</button>
+          <div class="ai-examples">
+            <p>Examples:</p>
+            <ul>
+              <li>"Make the sky more dramatic"</li>
+              <li>"Add warm sunset lighting"</li>
+              <li>"Convert to black and white"</li>
+              <li>"Make the colors more vibrant"</li>
+            </ul>
+          </div>
+          <div class="history-panel" id="history-panel-ai" style="display:none;"></div>
+          <div id="session-indicator-ai" class="session-indicator" style="display:none;">New Session</div>
+          <button class="btn btn-download"><i class="fa-solid fa-download"></i> Download</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="editor-content">
+      <div class="canvas-wrap">
+        <div class="canvas-aspect upload-area">
+          {% if filename %}
+          {% if processed_filename %}
+          <img src="{{ url_for('upload.show_processed', filename=processed_filename) }}" alt="Processed image" class="canvas-image" aria-live="polite" aria-busy="false">
+          {% else %}
+          <img src="{{ url_for('upload.show_uploaded', filename=filename) }}" alt="Uploaded image" class="canvas-image" aria-live="polite" aria-busy="false">
+          {% endif %}
+          {% else %}
+          <div class="upload-placeholder">
+            <div class="upload-icon-card">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </div>
+            <h2 class="upload-title">Upload an Image to Start</h2>
+            <h3 class="upload-subtitle">Drag and drop or click to upload your image</h3>
+            <form id="uploadForm" method="POST" action="{{ url_for('upload.upload_file') }}" enctype="multipart/form-data" autocomplete="off" novalidate>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="file" id="fileInput" name="file" accept="image/png,image/jpeg,image/jpg,image/gif" required style="display:none;" />
+              <button type="button" id="uploadBtnHero" class="btn btn-primary btn-upload-large"><i class="fa-solid fa-upload"></i> Upload</button>
+              <div id="upload-error" class="error-message"></div>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USAGE COUNTERS & MODALS -->
+<div class="usage-counters">
+  <span id="usage-edit-count" class="usage-counter" title="Edits today"></span>
+  <span id="usage-ai-count" class="usage-counter" title="AI edits today"></span>
+  <span id="usage-download-count" class="usage-counter" title="Downloads today"></span>
+</div>
+<!-- Upgrade Modal -->
+<div id="upgrade-modal" class="modal">
+  <div class="modal-content">
+    <span id="upgrade-modal-msg" class="upgrade-feature"></span>
+    <a href="/pricing" class="btn btn-primary">Upgrade to Premium</a>
+    <button onclick="document.getElementById('upgrade-modal').style.display='none'" class="btn btn-secondary">Close</button>
+  </div>
+</div>
+<!-- Premium Preview Modal -->
+<div id="premium-preview-modal" class="modal">
+  <div class="modal-content">
+    <h3 class="preview-title"></h3>
+    <p class="preview-desc"></p>
+    <img class="preview-img" style="max-width:100%;display:none;" />
+    <a href="/pricing" class="btn btn-primary">Upgrade to Premium</a>
+    <button onclick="document.getElementById('premium-preview-modal').style.display='none'" class="btn btn-secondary">Close</button>
+  </div>
+</div>
+
+<!-- Crop Tool Modal -->
+<div id="crop-modal" class="tool-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="crop-modal-title">
+  <div class="tool-modal-content">
+    <div class="tool-modal-header">
+      <span id="crop-modal-title">Crop Image</span>
+      <button class="tool-modal-close" aria-label="Close" onclick="ImageEditor.closeCropModal()">&times;</button>
+    </div>
+    <form id="crop-form" autocomplete="off" novalidate>
+      <div class="tool-modal-body">
+        <div class="modal-dimension-display">
+          Current: <span id="crop-current-dim"></span>
+        </div>
+        <div class="preset-buttons" id="crop-aspect-presets"></div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="crop-x">X</label>
+            <input type="number" class="modal-input" id="crop-x" name="x" min="0" required />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="crop-y">Y</label>
+            <input type="number" class="modal-input" id="crop-y" name="y" min="0" required />
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="crop-width">Width</label>
+            <input type="number" class="modal-input" id="crop-width" name="width" min="1" required />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="crop-height">Height</label>
+            <input type="number" class="modal-input" id="crop-height" name="height" min="1" required />
+          </div>
+        </div>
+        <div class="modal-form-group">
+          <label><input type="checkbox" class="modal-checkbox" id="crop-aspect-lock" checked /> Lock aspect ratio</label>
+        </div>
+        <div class="dimension-preview" id="crop-dim-preview"></div>
+        <div class="validation-message validation-error" id="crop-error"></div>
+      </div>
+      <div class="tool-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="ImageEditor.closeCropModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="crop-submit-btn">Crop</button>
+      </div>
+    </form>
+    <div class="modal-loading" id="crop-modal-loading" style="display:none;"><div class="modal-spinner"></div></div>
+  </div>
+</div>
+<!-- Resize Tool Modal -->
+<div id="resize-modal" class="tool-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="resize-modal-title">
+  <div class="tool-modal-content">
+    <div class="tool-modal-header">
+      <span id="resize-modal-title">Resize Image</span>
+      <button class="tool-modal-close" aria-label="Close" onclick="ImageEditor.closeResizeModal()">&times;</button>
+    </div>
+    <form id="resize-form" autocomplete="off" novalidate>
+      <div class="tool-modal-body">
+        <div class="modal-dimension-display">
+          Current: <span id="resize-current-dim"></span>
+        </div>
+        <div class="preset-buttons" id="resize-size-presets"></div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="resize-width">Width</label>
+            <input type="number" class="modal-input" id="resize-width" name="width" min="1" required />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label" for="resize-height">Height</label>
+            <input type="number" class="modal-input" id="resize-height" name="height" min="1" required />
+          </div>
+        </div>
+        <div class="modal-form-group">
+          <label><input type="checkbox" class="modal-checkbox" id="resize-aspect-lock" checked /> Preserve aspect ratio</label>
+        </div>
+        <div class="modal-form-group">
+          <label>Resize by:</label>
+          <div class="modal-radio-group">
+            <label><input type="radio" name="resize-method" value="pixels" checked /> Pixels</label>
+            <label><input type="radio" name="resize-method" value="percent" /> Percentage</label>
+          </div>
+        </div>
+        <div class="dimension-preview" id="resize-dim-preview"></div>
+        <div class="validation-message validation-error" id="resize-error"></div>
+      </div>
+      <div class="tool-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="ImageEditor.closeResizeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="resize-submit-btn">Resize</button>
+      </div>
+    </form>
+    <div class="modal-loading" id="resize-modal-loading" style="display:none;"><div class="modal-spinner"></div></div>
+  </div>
+</div>
+
+<div id="editor-loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); z-index:10000; align-items:center; justify-content:center;">
+  <div class="editor-spinner" aria-label="Processing..." role="status"></div>
+  <div class="editor-status" aria-live="polite"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/usage-manager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+{% endblock %}

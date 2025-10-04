@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}My Images - ImageCraft{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <main class="content">
+    <!-- Header -->
+    <section class="page-header">
+      <div class="header-content">
+        <h1><i class="fa-solid fa-images"></i> {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}Permanent Image History{% else %}My Images{% endif %}</h1>
+        <p class="lead">
+          {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}
+            View and manage your permanent edit history.
+          {% else %}
+            <span class="subscription-badge free">Free</span> <span class="upgrade-prompt inline">Upgrade to <a href="/pricing" class="upgrade-btn">Premium</a> for permanent history and more!</span>
+          {% endif %}
+        </p>
+      </div>
+      <div class="header-actions">
+        {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}
+        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> New Edit
+        </a>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Statistics Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number">{{ total }}</span>
+        <span class="stat-label">Permanent Edits</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Retention:</span>
+        <span class="stat-number">{% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}Forever{% else %}24h (session only){% endif %}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tier:</span>
+        <span class="stat-number subscription-badge {{ 'premium' if current_user.subscription_status == 'premium' else 'free' }}">{{ current_user.subscription_status|capitalize }}</span>
+      </div>
+    </div>
+
+    {% if not current_user.is_authenticated or current_user.subscription_status != 'premium' %}
+    <!-- Upgrade Promotion for Free Users -->
+    <div class="upgrade-prompt modal">
+      <h2>Unlock Permanent Image History</h2>
+      <p>Upgrade to <span class="subscription-badge premium">Premium</span> to save all your edits forever, access advanced features, and more!</p>
+      <ul class="feature-comparison">
+        <li><span class="feature-locked">&#128274;</span> Permanent edit history</li>
+        <li><span class="feature-locked">&#128274;</span> Unlimited undo/redo</li>
+        <li><span class="feature-locked">&#128274;</span> Priority AI editing</li>
+        <li><span class="feature-locked">&#128274;</span> Early access to new features</li>
+      </ul>
+      <a href="/pricing" class="upgrade-btn">Upgrade Now</a>
+    </div>
+    {% else %}
+    <!-- Images Grid -->
+    {% if images %}
+    <div class="images-grid">
+      {% for image in images %}
+      <div class="image-card" data-operation="{{ image.operation }}" data-date="{{ image.created_at.strftime('%Y-%m-%d') }}">
+        <div class="image-preview" data-bg-url="{{ url_for('upload.show_processed', filename=image.processed_filename) }}">
+          <noscript><img src="{{ url_for('upload.show_processed', filename=image.processed_filename) }}" alt="{{ image.processed_filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
+          <input type="checkbox" class="image-checkbox" value="{{ image._id }}">
+        </div>
+        <div class="image-info">
+          <div class="image-details">
+            <h4 class="image-title">{{ image.operation|title }} Edit</h4>
+            <p class="image-meta">{{ image.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p class="image-size">{{ (image.size_bytes / 1024)|round|int }} KB</p>
+            <span class="edit-status {% if image.status == 'permanent' %}permanent{% else %}temporary{% endif %}">
+              {% if image.status == 'permanent' %}Permanent{% else %}Temporary{% endif %}
+            </span>
+            {% if image.status != 'permanent' and image.expires_at %}
+              <span class="edit-expiration">Expires: {{ image.expires_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            {% endif %}
+          </div>
+          <div class="image-actions">
+            <a href="{{ url_for('upload.show_processed', filename=image.processed_filename) }}" target="_blank" class="btn-icon" title="View">
+              <i class="fa-solid fa-eye"></i>
+            </a>
+            <a href="{{ url_for('upload.download_image', filename=image.processed_filename) }}" class="btn-icon" title="Download">
+              <i class="fa-solid fa-download"></i>
+            </a>
+            <button data-delete-id="{{ image._id }}" data-image-name="{{ image.processed_filename }}" class="btn-icon btn-danger" title="Delete" type="button">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-content">
+        <i class="fa-solid fa-images empty-state-icon"></i>
+        <h3>No images found</h3>
+        <p>You haven't edited any images yet. Start creating!</p>
+        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Upload & Edit First Image
+        </a>
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    <!-- Results count for filtering -->
+    <div id="results-count" style="display: none;"></div>
+    <div id="no-results" style="display: none;">
+      <div class="empty-state">
+        <div class="empty-state-content">
+          <h3>No matching images</h3>
+          <p>Try adjusting your search or filter criteria.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="image-modal" class="modal">
+  <div class="modal-content image-modal-content">
+    <span class="modal-close">&times;</span>
+    <img class="modal-image" alt="Preview">
+    <div class="modal-controls">
+      <button onclick="ImageGallery.downloadCurrentImage()" class="btn btn-primary" type="button">
+        <i class="fa-solid fa-download"></i> Download
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+{% endblock %}
