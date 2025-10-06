@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% block title %}AI Image Generator - ImageCraft{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}" />
+<style>
+.generator-container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.generator-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.generator-controls {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.generator-preview {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+.prompt-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid #e1e4e8;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.prompt-input:focus {
+  outline: none;
+  border-color: #0066ff;
+}
+
+.param-group {
+  margin-bottom: 1.5rem;
+}
+
+.param-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #24292e;
+}
+
+.param-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.param-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+}
+
+.param-value {
+  min-width: 60px;
+  text-align: center;
+  font-weight: 500;
+  color: #0066ff;
+}
+
+.size-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.size-preset-btn {
+  padding: 0.5rem;
+  border: 1px solid #e1e4e8;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.size-preset-btn:hover {
+  background: #f6f8fa;
+  border-color: #0066ff;
+}
+
+.size-preset-btn.active {
+  background: #0066ff;
+  color: #fff;
+  border-color: #0066ff;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.examples-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e4e8;
+}
+
+.example-category {
+  margin-bottom: 1.5rem;
+}
+
+.example-category h4 {
+  font-size: 14px;
+  color: #586069;
+  margin-bottom: 0.5rem;
+}
+
+.example-prompt {
+  padding: 0.5rem 0.75rem;
+  background: #f6f8fa;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s;
+}
+
+.example-prompt:hover {
+  background: #e1e4e8;
+}
+
+.generated-image {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.preview-placeholder {
+  text-align: center;
+  color: #586069;
+}
+
+.preview-placeholder i {
+  font-size: 64px;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.generation-status {
+  margin-top: 1rem;
+  text-align: center;
+  color: #586069;
+}
+
+.download-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 12px;
+  color: #586069;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 968px) {
+  .generator-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="generator-container">
+  <div class="page-header">
+    <h1><i class="fa-solid fa-wand-magic-sparkles"></i> AI Image Generator</h1>
+    <p>Create stunning images from text descriptions - like "nano banana"!</p>
+  </div>
+
+  <div class="generator-grid">
+    <div class="generator-controls">
+      <div class="param-group">
+        <label class="param-label" for="prompt">Describe Your Image</label>
+        <textarea
+          id="prompt"
+          class="prompt-input"
+          placeholder="E.g., A tiny banana with intricate microscopic details, photorealistic, macro photography"
+          maxlength="500"
+        ></textarea>
+        <div class="char-count">
+          <span id="char-count">0</span> / 500
+        </div>
+      </div>
+
+      <div class="param-group">
+        <label class="param-label">Image Size</label>
+        <div class="size-presets">
+          <button class="size-preset-btn active" data-width="512" data-height="512">Square<br>512×512</button>
+          <button class="size-preset-btn" data-width="768" data-height="512">Landscape<br>768×512</button>
+          <button class="size-preset-btn" data-width="512" data-height="768">Portrait<br>512×768</button>
+        </div>
+        <div class="param-row" style="margin-top: 1rem;">
+          <input type="number" id="width" class="param-input" value="512" min="256" max="1024" step="64">
+          <span>×</span>
+          <input type="number" id="height" class="param-input" value="512" min="256" max="1024" step="64">
+        </div>
+      </div>
+
+      <div class="param-group">
+        <label class="param-label">Quality Steps: <span id="steps-value" class="param-value">30</span></label>
+        <input type="range" id="steps" min="10" max="50" value="30" step="5" style="width: 100%;">
+        <small style="color: #586069;">Higher = better quality but slower</small>
+      </div>
+
+      {% if current_user.subscription_status != 'premium' %}
+      <div class="param-group" style="padding: 1rem; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107;">
+        <small><i class="fa-solid fa-info-circle"></i> <strong>Free Tier:</strong> Limited to 512×512, 20 steps max. <a href="/pricing">Upgrade to Premium</a> for larger images and faster generation!</small>
+      </div>
+      {% endif %}
+
+      <button class="generate-btn" id="generate-btn">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Image
+      </button>
+
+      <div class="examples-section">
+        <h3 style="font-size: 16px; margin-bottom: 1rem;">Example Prompts</h3>
+        <div id="examples-container">
+          <div class="example-category">
+            <h4>Quick Examples</h4>
+            <div class="example-prompt">Nano banana - a microscopic banana with incredible detail</div>
+            <div class="example-prompt">Futuristic cityscape at night with flying cars</div>
+            <div class="example-prompt">Magical forest with glowing mushrooms</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="generator-preview" id="preview-area">
+      <div class="preview-placeholder" id="placeholder">
+        <i class="fa-solid fa-image"></i>
+        <h3>Your Generated Image Will Appear Here</h3>
+        <p>Enter a prompt and click "Generate Image" to start</p>
+      </div>
+      <div id="generation-status" class="generation-status" style="display: none;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="editor-loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center; flex-direction: column;">
+  <div class="editor-spinner" aria-label="Generating..." role="status"></div>
+  <div class="editor-status" style="color: #fff; margin-top: 1rem; font-size: 18px;">Generating your image...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/usage-manager.js') }}"></script>
+<script>
+const promptInput = document.getElementById('prompt');
+const charCount = document.getElementById('char-count');
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const stepsInput = document.getElementById('steps');
+const stepsValue = document.getElementById('steps-value');
+const generateBtn = document.getElementById('generate-btn');
+const previewArea = document.getElementById('preview-area');
+const placeholder = document.getElementById('placeholder');
+const generationStatus = document.getElementById('generation-status');
+const loadingOverlay = document.getElementById('editor-loading-overlay');
+
+let usageManager;
+document.addEventListener('DOMContentLoaded', function() {
+    usageManager = new window.UsageManager();
+});
+
+// Character count
+promptInput.addEventListener('input', () => {
+  charCount.textContent = promptInput.value.length;
+  generateBtn.disabled = promptInput.value.trim().length === 0;
+});
+
+// Steps slider
+stepsInput.addEventListener('input', () => {
+  stepsValue.textContent = stepsInput.value;
+});
+
+// Size presets
+document.querySelectorAll('.size-preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    widthInput.value = btn.dataset.width;
+    heightInput.value = btn.dataset.height;
+  });
+});
+
+// Example prompts
+document.querySelectorAll('.example-prompt').forEach(example => {
+  example.addEventListener('click', () => {
+    promptInput.value = example.textContent;
+    charCount.textContent = promptInput.value.length;
+    generateBtn.disabled = false;
+    promptInput.focus();
+  });
+});
+
+// Generate button
+generateBtn.addEventListener('click', async () => {
+  const prompt = promptInput.value.trim();
+  if (!prompt) return;
+
+  if (usageManager && !usageManager.canUseAI()) {
+    usageManager.showUpgradePrompt('AI generation limit reached. Upgrade for unlimited AI generations.');
+    return;
+  }
+
+  const width = parseInt(widthInput.value);
+  const height = parseInt(heightInput.value);
+  const steps = parseInt(stepsInput.value);
+
+  generateBtn.disabled = true;
+  loadingOverlay.style.display = 'flex';
+  placeholder.style.display = 'none';
+  generationStatus.style.display = 'block';
+  generationStatus.textContent = 'Starting generation...';
+
+  try {
+    const response = await fetch('/generate-task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ prompt, width, height, steps })
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.job_id) {
+      pollJobStatus(data.job_id);
+    } else {
+      throw new Error(data.error || 'Failed to start generation');
+    }
+  } catch (error) {
+    loadingOverlay.style.display = 'none';
+    generationStatus.style.display = 'none';
+    placeholder.style.display = 'block';
+    generateBtn.disabled = false;
+    alert('Error: ' + error.message);
+  }
+});
+
+function pollJobStatus(jobId, attempt = 0) {
+  fetch(`/job-status/${jobId}`, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'finished' && data.result && data.result.success) {
+      loadingOverlay.style.display = 'none';
+      generationStatus.style.display = 'none';
+
+      const filename = data.result.generated_filename || data.result.processed_filename;
+      const imgElement = document.createElement('img');
+      imgElement.src = `/processed/${filename}?t=${Date.now()}`;
+      imgElement.className = 'generated-image';
+      imgElement.alt = 'Generated image';
+
+      previewArea.innerHTML = '';
+      previewArea.appendChild(imgElement);
+
+      const actions = document.createElement('div');
+      actions.className = 'download-actions';
+      actions.innerHTML = `
+        <button class="btn btn-primary" onclick="downloadImage('${filename}')">
+          <i class="fa-solid fa-download"></i> Download
+        </button>
+        <button class="btn btn-secondary" onclick="editImage('${filename}')">
+          <i class="fa-solid fa-edit"></i> Edit Image
+        </button>
+      `;
+      previewArea.appendChild(actions);
+
+      generateBtn.disabled = false;
+      if (usageManager) usageManager.refresh();
+    } else if (data.status === 'failed') {
+      throw new Error(data.error || 'Generation failed');
+    } else if (data.status === 'queued' || data.status === 'started') {
+      generationStatus.textContent = data.status === 'queued' ? 'In queue...' : 'Generating...';
+      setTimeout(() => pollJobStatus(jobId, attempt + 1), 1000);
+    }
+  })
+  .catch(error => {
+    loadingOverlay.style.display = 'none';
+    generationStatus.style.display = 'none';
+    placeholder.style.display = 'block';
+    generateBtn.disabled = false;
+    alert('Error: ' + error.message);
+  });
+}
+
+function downloadImage(filename) {
+  window.location.href = `/download/${filename}`;
+  if (usageManager) usageManager.refresh();
+}
+
+function editImage(filename) {
+  window.location.href = `/editing/${filename}`;
+}
+</script>
+{% endblock %}

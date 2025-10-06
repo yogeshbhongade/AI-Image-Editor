@@ -105,10 +105,15 @@ def delete_image():
         flash('Image not found.', 'error')
         return redirect(url_for('upload.my_images'))
     try:
-        if os.path.exists(doc['output_path']):
-            os.remove(doc['output_path'])
+        file_path = doc.get('output_path')
+        if not file_path:
+            file_path = os.path.join(Config.PROCESSED_FOLDER, filename)
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         extensions.db.processed.delete_one({'_id': doc['_id']})
-        flash('Image deleted.', 'success')
+        flash('Image deleted successfully.', 'success')
     except Exception as e:
         flash(f'Error deleting image: {e}', 'error')
     return redirect(url_for('upload.my_images'))

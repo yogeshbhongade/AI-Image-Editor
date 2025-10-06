@@ -79,9 +79,11 @@
       </div>
       <nav class="nav" aria-label="Primary Navigation">
         <a href="/" {% if request.path == '/' %}class="active" aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('upload.editing') }}" {% if request.endpoint == 'upload.editing' %}class="active" aria-current="page"{% endif %}>Editor</a>
+        <a href="{{ url_for('ai_generate.generate_page') }}" {% if request.endpoint == 'ai_generate.generate_page' %}class="active" aria-current="page"{% endif %}><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</a>
         <a href="{{ url_for('auth.profile') }}" {% if request.endpoint == 'auth.profile' %}class="active" aria-current="page"{% endif %}>Profile</a>
         <a href="{{ url_for('core.downloads') }}" {% if request.endpoint == 'core.downloads' %}class="active" aria-current="page"{% endif %}>Downloads</a>
-        <a href="{{ url_for('core.settings') }}" {% if request.endpoint == 'core.settings' %}class="active" aria-current="page"{% endif %}>Settings</a>
+        <a href="{{ url_for('core.pricing') }}" {% if request.endpoint == 'core.pricing' %}class="active" aria-current="page"{% endif %}>Pricing</a>
         <a href="{{ url_for('core.help_page') }}" {% if request.endpoint == 'core.help_page' %}class="active" aria-current="page"{% endif %}>Help</a>
       </nav>
       <div class="header-right">
