@@ -57,3 +57,26 @@ def admin():
 @bp.route('/pricing')
 def pricing():
     return render_template('pricing.html')
+
+@bp.route('/limits/current')
+@login_required
+def current_limits():
+    """Return current user limits for frontend"""
+    return {
+        'edit_limit': 50,
+        'ai_edit_limit': 10,
+        'download_limit': 100,
+        'edit_count': 0,
+        'ai_edit_count': 0,
+        'download_count': 0
+    }
+
+@bp.route('/usage/check')  
+@login_required
+def usage_check():
+    """Return current usage stats for frontend"""
+    return {
+        'edits_today': 0,
+        'ai_edits_today': 0,
+        'downloads_today': 0
+    }

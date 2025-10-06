@@ -18,7 +18,7 @@ class Config:
     UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '../uploads'))
     PROCESSED_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '../processed'))
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    CONTENT_SECURITY_POLICY = os.getenv('CONTENT_SECURITY_POLICY', "default-src 'self'; img-src 'self' data: blob: https://lh3.googleusercontent.com https://razorpay.com https://checkout.razorpay.com; script-src 'self' 'unsafe-inline' checkout.razorpay.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; style-src-elem 'self' cdnjs.cloudflare.com; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; connect-src 'self' https:; frame-src https://api.razorpay.com; object-src 'none'; media-src 'self' https:;")
+    CONTENT_SECURITY_POLICY = os.getenv('CONTENT_SECURITY_POLICY', "default-src 'self'; img-src 'self' data: blob: https://lh3.googleusercontent.com https://razorpay.com https://checkout.razorpay.com; script-src 'self' 'unsafe-inline' checkout.razorpay.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com; style-src-elem 'self' fonts.googleapis.com cdnjs.cloudflare.com; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; connect-src 'self' https:; frame-src https://api.razorpay.com; object-src 'none'; media-src 'self' https:;")
     # Razorpay
     RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
     RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')

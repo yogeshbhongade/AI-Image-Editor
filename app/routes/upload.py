@@ -31,7 +31,10 @@ def upload_file():
                 'uploaded_at': datetime.utcnow(),
                 'size_bytes': os.path.getsize(save_path)
             })
+            
             flash('Image uploaded successfully!', 'success')
+            # Redirect to editing page with the uploaded filename
+            return redirect(url_for('upload.editing', filename=unique_filename))
         except Exception as e:
             flash('Upload failed.', 'error')
     else:

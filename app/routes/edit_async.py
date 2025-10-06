@@ -19,7 +19,9 @@ def enqueue_edit_task(operation, filename):
     sequence = data.get('sequence')
     edit_status = data.get('edit_status', 'temporary')
     from tasks import process_image_task
-    queue_to_use = extensions.premium_queue if premium_required(lambda: None)(operation) or operation in {'emboss','edges','enhance','batch','bulk_download'} else extensions.queue
+    # Determine if operation requires premium
+    requires_premium = operation in {'emboss','edges','enhance','batch','bulk_download'}
+    queue_to_use = extensions.premium_queue if requires_premium else extensions.queue
     job = queue_to_use.enqueue(
         process_image_task,
         user_id=current_user.id,
@@ -49,7 +51,8 @@ def enqueue_ai_edit_task(filename):
     if not prompt:
         return jsonify({'success': False, 'error': 'Prompt required'}), 400
     from tasks import process_ai_edit_task
-    queue_to_use = extensions.premium_queue if premium_required(lambda: None)("ai") else extensions.queue
+    # AI operations could be premium features
+    queue_to_use = extensions.premium_queue
     job = queue_to_use.enqueue(
         process_ai_edit_task,
         user_id=current_user.id,
