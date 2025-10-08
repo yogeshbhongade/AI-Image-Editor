@@ -16,16 +16,34 @@ class User(UserMixin):
         self.password_hash = user_data.get('password')
         self.first_name = user_data.get('first_name', '')
         self.last_name = user_data.get('last_name', '')
+        self.role = user_data.get('role', 'user')
+        self.subscription_status = user_data.get('subscription_status', 'free')
+
+
+def is_admin(self):
+        return self.role == 'admin'
+
+def is_premium(self):
+        return self.subscription_status == 'premium'
+        
 
 def load_user(user_id):
-    # Support both string and ObjectId-stored user ids
-    user_data = extensions.db.users.find_one({'_id': user_id})
+  
+    try:
+        user_data = extensions.db.users.find_one({'_id': ObjectId(user_id)})
+    except Exception:
+        user_data = extensions.db.users.find_one({'_id': user_id})
+
     if not user_data:
-        try:
-            user_data = extensions.db.users.find_one({'_id': ObjectId(user_id)})
-        except Exception:
-            user_data = None
-    return User(user_data) if user_data else None
+        return None
+
+    ADMIN_EMAILS = {"yogeshbhongade17@gmail.com"}
+
+    if user_data.get("email") in ADMIN_EMAILS:
+        user_data["role"] = "admin"
+        user_data["subscription_status"] = "premium"
+
+    return User(user_data)
 
 def authenticate_user(email_or_username, password):
     user_data = extensions.db.users.find_one({

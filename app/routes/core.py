@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify, abort
 from flask_login import login_required, current_user
+from bson import ObjectId
 from app import extensions
 
 bp = Blueprint('core', __name__)
@@ -44,6 +45,9 @@ def settings():
 @bp.route('/admin')
 @login_required
 def admin():
+    # Restrict access to admins only
+    if getattr(current_user, 'role', '') != 'admin':
+        abort(403)
     total_users = extensions.db.users.count_documents({})
     total_uploads = extensions.db.uploads.count_documents({})
     total_processed = extensions.db.processed.count_documents({})
@@ -62,21 +66,53 @@ def pricing():
 @login_required
 def current_limits():
     """Return current user limits for frontend"""
-    return {
-        'edit_limit': 50,
-        'ai_edit_limit': 10,
-        'download_limit': 100,
-        'edit_count': 0,
-        'ai_edit_count': 0,
-        'download_count': 0
+   
+    limits = {
+        'edit_daily': 50,
+        'ai_daily': 10,
+        'download_daily': 100,
+        'premium_tools': False,
     }
+
+    # If current_user is premium / admin -> grant effectively unlimited access
+    if getattr(current_user, 'subscription_status', 'free') == 'premium' or getattr(current_user, 'role', '') == 'admin':
+        # Use a very large integer instead of Infinity for JSON safety,
+        # and set premium_tools flag so the frontend displays "Unlimited".
+        limits = {
+            'edit_daily': 999999999,
+            'ai_daily': 999999999,
+            'download_daily': 999999999,
+            'premium_tools': True,
+        }
+
+    return jsonify(limits)
 
 @bp.route('/usage/check')  
 @login_required
 def usage_check():
     """Return current usage stats for frontend"""
-    return {
-        'edits_today': 0,
-        'ai_edits_today': 0,
-        'downloads_today': 0
-    }
+    # Premium users: show zero usage (effectively unlimited)
+    if getattr(current_user, 'subscription_status', 'free') == 'premium' or getattr(current_user, 'role', '') == 'admin':
+        return jsonify({
+            'edit': 0,
+            'ai': 0,
+            'download': 0
+        })
+
+    usage = None
+    try:
+        usage = extensions.usage_col.find_one({'user_id': str(current_user.id)}) or {}
+    except Exception:
+        usage = {}
+    if not usage:
+        # try ObjectId form if stored that way
+        try:
+            usage = extensions.usage_col.find_one({'user_id': ObjectId(current_user.id)}) or {}
+        except Exception:
+            usage = {}
+
+    return jsonify({
+        'edit': int(usage.get('edit', 0)),
+        'ai': int(usage.get('ai', 0)),
+        'download': int(usage.get('download', 0))
+    })

@@ -10,16 +10,21 @@ bp = Blueprint('edit_async', __name__)
 @bp.route('/edit-task/<operation>/<filename>', methods=['POST'])
 @login_required
 def enqueue_edit_task(operation, filename):
+    # Accept both form data and JSON
     data = request.form if request.form else request.get_json(force=True)
+    if not data:
+        return jsonify({"success": False, "error": "No data provided"}), 400
+
     processed = data.get('processed')
     value = data.get('value')
-    width = data.get('width', type=int)
-    height = data.get('height', type=int)
+    width = int(data.get('width')) if data.get('width') else None
+    height = int(data.get('height')) if data.get('height') else None
     session_id = data.get('session_id')
     sequence = data.get('sequence')
     edit_status = data.get('edit_status', 'temporary')
+
     from tasks import process_image_task
-    # Determine if operation requires premium
+    
     requires_premium = operation in {'emboss','edges','enhance','batch','bulk_download'}
     queue_to_use = extensions.premium_queue if requires_premium else extensions.queue
     job = queue_to_use.enqueue(

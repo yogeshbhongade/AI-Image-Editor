@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, send_from_directory, jsonify
+from flask import Blueprint, request, redirect, url_for, flash, render_template, send_from_directory, jsonify, current_app
 from flask_login import login_required, current_user
 from app import extensions
 from app.security import validate_image_file, premium_required
@@ -99,19 +99,55 @@ def download_image(filename):
 @bp.route('/delete-image', methods=['POST'])
 @login_required
 def delete_image():
-    filename = request.form.get('filename')
-    if not filename:
-        flash('No file specified.', 'error')
-        return redirect(url_for('upload.my_images'))
-    doc = extensions.db.processed.find_one({'processed_filename': filename, 'created_by': current_user.id})
+    # Accept JSON or form data
+    data = request.get_json(silent=True) or request.form
+    image_id = data.get('image_id') or data.get('_id') or data.get('id')
+    filename = data.get('filename')
+
+    # Resolve: image_id preferred (it's the DB _id), fallback to filename
+    doc = None
+    if image_id:
+        try:
+            from bson import ObjectId
+            doc = extensions.db.processed.find_one({'_id': ObjectId(image_id), 'created_by': current_user.id})
+        except Exception:
+            doc = None
+    elif filename:
+        doc = extensions.db.processed.find_one({'processed_filename': filename, 'created_by': current_user.id})
+
     if not doc:
-        flash('Image not found.', 'error')
+        flash('Image not found or access denied.', 'error')
         return redirect(url_for('upload.my_images'))
+
+    # Helper to safely remove file
+    def _safe_remove(path):
+        try:
+            if not path:
+                return
+            if not os.path.isabs(path):
+                path = os.path.join(Config.PROCESSED_FOLDER, path) if os.path.basename(path) == path else path
+            if os.path.exists(path):
+                os.remove(path)
+                current_app.logger.info("Deleted file %s", path)
+        except Exception as e:
+            current_app.logger.exception("Failed removing file %s: %s", path, e)
+
+    # Remove processed file
+    _safe_remove(doc.get('output_path') or os.path.join(Config.PROCESSED_FOLDER, doc.get('processed_filename')))
+
+    # Optionally remove any associated 'uploads' record and file
     try:
-        if os.path.exists(doc['output_path']):
-            os.remove(doc['output_path'])
-        extensions.db.processed.delete_one({'_id': doc['_id']})
-        flash('Image deleted.', 'success')
-    except Exception as e:
-        flash(f'Error deleting image: {e}', 'error')
+        if 'source_upload_id' in doc:
+            from bson import ObjectId
+            up = extensions.db.uploads.find_one({'_id': ObjectId(doc['source_upload_id'])})
+            if up:
+                _safe_remove(up.get('path') or os.path.join(Config.UPLOAD_FOLDER, up.get('filename')))
+                extensions.db.uploads.delete_one({'_id': up['_id']})
+    except Exception:
+        current_app.logger.exception("Failed removing source upload for %s", doc.get('_id'))
+
+    # Remove processed DB doc
+    extensions.db.processed.delete_one({'_id': doc['_id']})
+    flash('Image and associated files deleted.', 'success')
     return redirect(url_for('upload.my_images'))
+

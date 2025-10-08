@@ -81,10 +81,10 @@ def apply_image_operation(img, operation, value, width, height):
         angle = float(value) if value else 90
         return img.rotate(angle, expand=True, fillcolor='white')
     
-    elif operation == 'flip_horizontal':
+    elif operation in ('flip_h', 'flip_horizontal'):
         return img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     
-    elif operation == 'flip_vertical':
+    elif operation in ('flip_v', 'flip_vertical'):
         return img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     
     elif operation == 'brightness':
