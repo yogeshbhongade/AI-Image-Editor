@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/downloads.css') }}" />
 {% endblock %}
 {% block content %}
-  <div id="downloads-root" data-processed-template="{{ url_for('upload.show_processed', filename='__FILENAME__') }}">
+  <div id="downloads-root" data-processed-template="{{ url_for('images.serve_processed', filename='__FILENAME__') }}">
     <div class="downloads-header">
       <h1 class="h1"><i class="fa-solid fa-download"></i>Downloads</h1>
     </div>
@@ -21,8 +21,8 @@
       <div class="downloads-container Card-main" data-ajax-init="true">
         {% for d in downloads %}
         <div class="d-card">
-          <div class="thumb-square" data-bg-url="{{ url_for('upload.show_processed', filename=d.filename) }}">
-            <noscript><img src="{{ url_for('upload.show_processed', filename=d.filename) }}" alt="{{ d.filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
+          <div class="thumb-square" data-bg-url="{{ url_for('images.serve_processed', filename=d.filename) }}">
+            <noscript><img src="{{ url_for('images.serve_processed', filename=d.filename) }}" alt="{{ d.filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
           </div>
           <div class="downloads-card-content mt-2">
             <p class="p">{{ d.filename }}</p>

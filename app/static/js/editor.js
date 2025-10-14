@@ -1,20 +1,58 @@
 // ============================================================
-// IMAGE EDITOR JAVASCRIPT
+// IMAGE EDITOR JAVASCRIPT - FIXED
 // Handles image editing functionality and tools
 // ============================================================
 
-let usageManager;
-document.addEventListener('DOMContentLoaded', function() {
-    usageManager = new window.UsageManager();
+document.addEventListener('DOMContentLoaded', async function () {
+    // Ensure ImageCraftApp global exists early
+    if (typeof window.ImageCraftApp === 'undefined') {
+        window.ImageCraftApp = {
+            showFlashMessage: function (msg, type) {
+                console.log(`${type ? type.toUpperCase() + ': ' : ''}${msg}`);
+                alert(`${type ? type.toUpperCase() + ': ' : ''}${msg}`);
+            },
+            setLoading: function (btn, state) {
+                if (!btn) return;
+                btn.disabled = state;
+                btn.textContent = state ? 'Processing...' : 'Apply';
+            },
+            makeRequest: async function (url, options = {}) {
+                const res = await fetch(url, options);
+                return res.json();
+            }
+        };
+        console.warn("⚠️ ImageCraftApp placeholder initialized.");
+    }
+
+    // Initialize usageManager
+    window.usageManager = new window.UsageManager();
+
+    try {
+        const res = await fetch('/limits/current');
+        const data = await res.json();
+        if (data.subscription_status && window.usageManager) {
+            window.usageManager.subscription = data.subscription_status;
+            console.log("Subscription status:", data.subscription_status);
+        }
+    } catch (err) {
+        console.error('Failed to load subscription info:', err);
+    }
+
+    // Initialize editor UI and controls
     initializeEditor();
-    // Wire hero upload button to hidden input and auto-submit
+
+    // Upload button binding
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtnHero');
     if (uploadBtn && fileInput) {
-        uploadBtn.addEventListener('click', function(){ fileInput.click(); });
-        fileInput.addEventListener('change', function(){ if (fileInput.files && fileInput.files.length) { fileInput.form.submit(); }});
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files && fileInput.files.length) fileInput.form.submit();
+        });
     }
 });
+
+
 
 // --- History Manager ---
 class HistoryManager {
@@ -168,38 +206,38 @@ function initializeEditor() {
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tab = button.getAttribute('data-tab');
             switchTab(tab, button);
         });
     });
-    
+
     // File upload handling
     const fileInput = document.getElementById('fileInput');
     const uploadForm = document.getElementById('uploadForm');
     const uploadArea = document.querySelector('.upload-area');
-    
+
     if (fileInput && uploadForm) {
         // File input change handler
         fileInput.addEventListener('change', handleFileSelection);
-        
+
         // Drag and drop functionality
         if (uploadArea) {
             setupDragAndDrop(uploadArea, fileInput);
         }
     }
-    
+
     // Tool button handlers
     setupToolButtons();
-    
+
     // Filter sliders and controls
     setupFilterControls();
-    
+
     // Download button
     setupDownloadButton();
-    
+
     // Set subscription status for HistoryManager
     const container = document.querySelector('.editor-container');
     if (container) {
@@ -208,7 +246,7 @@ function initializeEditor() {
             window.HistoryManager.setSubscriptionStatus(sub);
         }
     }
-    
+
     // Start session on load
     const filename = getFilenameFromPath();
     window.HistoryManager.startSession(getOrCreateSessionId(filename));
@@ -218,7 +256,7 @@ function switchTab(tabId, activeButton) {
     // Remove active class from all buttons and contents
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
+
     // Add active class to clicked button and corresponding content
     activeButton.classList.add('active');
     const tabContent = document.getElementById(tabId);
@@ -230,33 +268,69 @@ function switchTab(tabId, activeButton) {
 function handleFileSelection() {
     const fileInput = document.getElementById('fileInput');
     const uploadForm = document.getElementById('uploadForm');
-    
+
     if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        
+
         // Validate file type
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
         if (!allowedTypes.includes(file.type)) {
             ImageCraftApp.showFlashMessage('Please select a valid image file (PNG, JPG, JPEG, or GIF)', 'error');
             return;
         }
-        
+
         // Validate file size (max 10MB)
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
             ImageCraftApp.showFlashMessage('File size must be less than 10MB', 'error');
             return;
         }
-        
+
         // Show loading state
         const submitBtn = uploadForm.querySelector('button');
         if (submitBtn) {
             ImageCraftApp.setLoading(submitBtn, true);
         }
-        
-        // Submit form
-        uploadForm.submit();
+
+        // Upload file via AJAX
+        uploadFileAjax(file, uploadForm, submitBtn);
     }
+}
+
+function uploadFileAjax(file, form, submitBtn) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Get CSRF token
+    const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+    formData.append('csrf_token', csrfToken);
+    
+    fetch('/api/images/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to editing page with uploaded file
+            window.location.href = `/editing/${data.filename}`;
+        } else {
+            ImageCraftApp.showFlashMessage(data.error || 'Upload failed', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        ImageCraftApp.showFlashMessage('Upload failed. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Remove loading state
+        if (submitBtn) {
+            ImageCraftApp.setLoading(submitBtn, false);
+        }
+    });
 }
 
 function setupDragAndDrop(uploadArea, fileInput) {
@@ -265,36 +339,36 @@ function setupDragAndDrop(uploadArea, fileInput) {
         uploadArea.addEventListener(eventName, preventDefaults, false);
         document.body.addEventListener(eventName, preventDefaults, false);
     });
-    
+
     // Highlight drop area when item is dragged over it
     ['dragenter', 'dragover'].forEach(eventName => {
         uploadArea.addEventListener(eventName, highlight, false);
     });
-    
+
     ['dragleave', 'drop'].forEach(eventName => {
         uploadArea.addEventListener(eventName, unhighlight, false);
     });
-    
+
     // Handle dropped files
     uploadArea.addEventListener('drop', handleDrop, false);
-    
+
     function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
     }
-    
+
     function highlight() {
         uploadArea.classList.add('drag-over');
     }
-    
+
     function unhighlight() {
         uploadArea.classList.remove('drag-over');
     }
-    
+
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-        
+
         if (files.length > 0) {
             fileInput.files = files;
             handleFileSelection();
@@ -336,7 +410,7 @@ function openCropModal() {
     document.getElementById('crop-aspect-lock').checked = true;
     updateCropPreview();
     form.onsubmit = handleCropSubmit;
-    ['crop-x','crop-y','crop-width','crop-height','crop-aspect-lock'].forEach(id => {
+    ['crop-x', 'crop-y', 'crop-width', 'crop-height', 'crop-aspect-lock'].forEach(id => {
         document.getElementById(id).oninput = updateCropPreview;
     });
     // Accessibility: focus trap and esc
@@ -359,7 +433,7 @@ function applyCropPreset(preset, currentDim) {
     const aspect = preset.ratio;
     let w = currentDim.width, h = currentDim.height;
     if (aspect) {
-        if (w/h > aspect) {
+        if (w / h > aspect) {
             w = Math.round(h * aspect);
         } else {
             h = Math.round(w / aspect);
@@ -384,7 +458,7 @@ function updateCropPreview(e) {
     const currentDim = getCurrentImageDimensions();
     // Aspect ratio lock: auto-adjust paired field
     if (aspectLock && e && e.target) {
-        const aspect = wInput.value && hInput.value ? w/h : currentDim.width/currentDim.height;
+        const aspect = wInput.value && hInput.value ? w / h : currentDim.width / currentDim.height;
         if (e.target === wInput && h > 0) {
             h = Math.round(w / aspect);
             hInput.value = h;
@@ -436,7 +510,7 @@ function handleCropSubmit(e) {
         document.removeEventListener('editor:operation-complete', onComplete);
     };
     document.addEventListener('editor:operation-complete', onComplete);
-    runOperation('crop', { x, y, width: w, height: h });
+    runOperation('crop', { value: JSON.stringify({ x, y }), width: w, height: h });
 }
 
 // --- Enhanced Resize Tool Modal ---
@@ -471,7 +545,7 @@ function openResizeModal() {
     document.querySelector('input[name="resize-method"][value="pixels"]').checked = true;
     updateResizePreview();
     form.onsubmit = handleResizeSubmit;
-    ['resize-width','resize-height','resize-aspect-lock'].forEach(id => {
+    ['resize-width', 'resize-height', 'resize-aspect-lock'].forEach(id => {
         document.getElementById(id).oninput = updateResizePreview;
     });
     document.querySelectorAll('input[name="resize-method"]').forEach(radio => {
@@ -507,7 +581,7 @@ function updateResizePreview(e) {
     let displayW = w, displayH = h;
     // Aspect ratio lock: auto-adjust paired field
     if (aspectLock && e && e.target) {
-        const aspect = currentDim.width/currentDim.height;
+        const aspect = currentDim.width / currentDim.height;
         if (e.target === wInput && h > 0) {
             h = Math.round(w / aspect);
             hInput.value = h;
@@ -595,8 +669,8 @@ function getPresetSizes() {
 function getAspectRatioPresets() {
     return [
         { label: '1:1', ratio: 1 },
-        { label: '4:3', ratio: 4/3 },
-        { label: '16:9', ratio: 16/9 },
+        { label: '4:3', ratio: 4 / 3 },
+        { label: '16:9', ratio: 16 / 9 },
         { label: 'Custom', ratio: null }
     ];
 }
@@ -719,125 +793,134 @@ function runOperation(operation, params = {}) {
         params.processed = processed;
     }
     showEditorLoading(true);
-    fetch(`/edit-task/${operation}/${filename}`, {
+    
+    // Prepare request data for the new API
+    const requestData = {
+        operation: operation,
+        filename: filename,
+        ...params
+    };
+    
+    fetch('/api/images/process', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         },
-        body: JSON.stringify(params)
+        body: JSON.stringify(requestData)
     })
-    .then(async res => {
-        let data;
-        try {
-            data = await res.json();
-        } catch (e) {
-            data = { success: false, error: 'Server error: invalid response' };
-        }
-        if (!res.ok && !data.error) {
-            data.error = `HTTP ${res.status}`;
-        }
-        return data;
-    })
-    .then(data => {
-        if (data.upgrade_required) {
-            usageManager.showUpgradePrompt(data.error || 'Upgrade required for this feature.');
+        .then(async res => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = { success: false, error: 'Server error: invalid response' };
+            }
+            if (!res.ok && !data.error) {
+                data.error = `HTTP ${res.status}`;
+            }
+            return data;
+        })
+        .then(data => {
+            if (data.upgrade_required) {
+                usageManager.showUpgradePrompt(data.error || 'Upgrade required for this feature.');
+                showEditorLoading(false);
+                document.dispatchEvent(new Event('editor:operation-complete'));
+                return;
+            }
+            if (data.job_id) {
+                pollJobStatus(data.job_id, operation, sessionId);
+                refreshUsageCounters();
+            } else {
+                showEditorLoading(false);
+                document.dispatchEvent(new Event('editor:operation-complete'));
+                ImageCraftApp.showFlashMessage(data.error || 'Failed to start edit', 'error');
+            }
+        })
+        .catch(err => {
             showEditorLoading(false);
             document.dispatchEvent(new Event('editor:operation-complete'));
-            return;
-        }
-        if (data.job_id) {
-            pollJobStatus(data.job_id, operation, sessionId);
-            refreshUsageCounters();
-        } else {
-            showEditorLoading(false);
-            document.dispatchEvent(new Event('editor:operation-complete'));
-            ImageCraftApp.showFlashMessage(data.error || 'Failed to start edit', 'error');
-        }
-    })
-    .catch(err => {
-        showEditorLoading(false);
-        document.dispatchEvent(new Event('editor:operation-complete'));
-        ImageCraftApp.showFlashMessage('An error occurred while editing the image.', 'error');
-        console.error('[editor.js] AJAX error:', err);
-    });
+            ImageCraftApp.showFlashMessage('An error occurred while editing the image.', 'error');
+            console.error('[editor.js] AJAX error:', err);
+        });
 }
 
 function pollJobStatus(jobId, operation, sessionId, attempt = 0) {
-    fetch(`/job-status/${jobId}`, {
+    fetch(`/api/images/job-status/${jobId}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(async res => {
-        let data;
-        try {
-            data = await res.json();
-        } catch (e) {
-            data = { status: 'error', error: 'Invalid response' };
-        }
-        return data;
-    })
-    .then(data => {
-        let resultObj = data.result;
-        if (typeof resultObj === 'string') {
-            resultObj = { success: true, processed_filename: resultObj };
-        }
-        let statusText = '';
-        if (data.status === 'queued' || data.status === 'deferred') {
-            statusText = 'Queued...';
-        } else if (data.status === 'started') {
-            statusText = 'Processing...';
-            if (data.progress) statusText += ` (${data.progress}%)`;
-        }
-        showEditorLoading(true, statusText);
-        if (data.status === 'finished' && resultObj && resultObj.success) {
-            showEditorLoading(false);
-            document.dispatchEvent(new Event('editor:operation-complete'));
-            // Update canvas image src
-            const canvasImg = document.querySelector('.canvas-image');
-            if (canvasImg) {
-                const newSrc = `/processed/${resultObj.processed_filename}?t=${Date.now()}`;
-                canvasImg.src = newSrc;
+        .then(async res => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = { status: 'error', error: 'Invalid response' };
             }
-            // Update history
-            if (resultObj.session_id) {
-                window.HistoryManager.sessionId = resultObj.session_id;
+            return data;
+        })
+        .then(data => {
+            let resultObj = data.result;
+            if (typeof resultObj === 'string') {
+                resultObj = { success: true, processed_filename: resultObj };
             }
-            if (resultObj.edit_status) {
-                window.HistoryManager.addOperation(operation, resultObj);
-            } else {
-                window.HistoryManager.addOperation(operation, resultObj);
+            let statusText = '';
+            if (data.status === 'queued' || data.status === 'deferred') {
+                statusText = 'Queued...';
+            } else if (data.status === 'started') {
+                statusText = 'Processing...';
+                if (data.progress) statusText += ` (${data.progress}%)`;
             }
-            if (resultObj.edit_status === 'permanent') {
-                ImageCraftApp.showFlashMessage(resultObj.message || 'Permanent edit applied!', 'success');
-            } else {
-                let msg = resultObj.message || 'Edit applied!';
-                if (resultObj.expires_at) {
-                    const exp = new Date(resultObj.expires_at);
-                    const now = new Date();
-                    const mins = Math.max(0, Math.round((exp - now) / 60000));
-                    msg += ` (Expires in ${mins} min)`;
+            showEditorLoading(true, statusText);
+            if (data.status === 'finished' && resultObj && resultObj.success) {
+                showEditorLoading(false);
+                document.dispatchEvent(new Event('editor:operation-complete'));
+                // Update canvas image src
+                const canvasImg = document.querySelector('.canvas-image');
+                if (canvasImg) {
+                    const newSrc = `/api/images/serve/processed/${resultObj.processed_filename}?t=${Date.now()}`;
+                    canvasImg.src = newSrc;
                 }
-                ImageCraftApp.showFlashMessage(msg, 'info');
+                // Update history
+                if (resultObj.session_id) {
+                    window.HistoryManager.sessionId = resultObj.session_id;
+                }
+                if (resultObj.edit_status) {
+                    window.HistoryManager.addOperation(operation, resultObj);
+                } else {
+                    window.HistoryManager.addOperation(operation, resultObj);
+                }
+                if (resultObj.edit_status === 'permanent') {
+                    ImageCraftApp.showFlashMessage(resultObj.message || 'Permanent edit applied!', 'success');
+                } else {
+                    let msg = resultObj.message || 'Edit applied!';
+                    if (resultObj.expires_at) {
+                        const exp = new Date(resultObj.expires_at);
+                        const now = new Date();
+                        const mins = Math.max(0, Math.round((exp - now) / 60000));
+                        msg += ` (Expires in ${mins} min)`;
+                    }
+                    ImageCraftApp.showFlashMessage(msg, 'info');
+                }
+                refreshUsageCounters();
+            } else if (data.status === 'failed') {
+                showEditorLoading(false);
+                document.dispatchEvent(new Event('editor:operation-complete'));
+                ImageCraftApp.showFlashMessage(data.error || 'Edit failed', 'error');
+            } else if (data.status === 'queued' || data.status === 'started' || data.status === 'deferred') {
+                setTimeout(() => pollJobStatus(jobId, operation, sessionId, attempt + 1), 800);
+            } else {
+                showEditorLoading(false);
+                document.dispatchEvent(new Event('editor:operation-complete'));
+                ImageCraftApp.showFlashMessage('Unknown job status', 'error');
             }
-            refreshUsageCounters();
-        } else if (data.status === 'failed') {
+        })
+        .catch(err => {
             showEditorLoading(false);
             document.dispatchEvent(new Event('editor:operation-complete'));
-            ImageCraftApp.showFlashMessage(data.error || 'Edit failed', 'error');
-        } else if (data.status === 'queued' || data.status === 'started' || data.status === 'deferred') {
-            setTimeout(() => pollJobStatus(jobId, operation, sessionId, attempt + 1), 800);
-        } else {
-            showEditorLoading(false);
-            document.dispatchEvent(new Event('editor:operation-complete'));
-            ImageCraftApp.showFlashMessage('Unknown job status', 'error');
-        }
-    })
-    .catch(err => {
-        showEditorLoading(false);
-        document.dispatchEvent(new Event('editor:operation-complete'));
-        ImageCraftApp.showFlashMessage('Error polling job status', 'error');
-        console.error('[editor.js] Poll error:', err);
-    });
+            ImageCraftApp.showFlashMessage('Error polling job status', 'error');
+            console.error('[editor.js] Poll error:', err);
+        });
 }
 
 // --- Undo/Redo ---
@@ -849,7 +932,7 @@ function redoLastOperation() {
 }
 
 // --- Keyboard Shortcuts ---
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         undoLastOperation();
@@ -883,7 +966,7 @@ function getFilenameFromPath() {
 function getProcessedFilename() {
     // Get processed filename from the page context
     const processedImg = document.querySelector('.canvas-image');
-    if (processedImg && processedImg.src.includes('/processed/')) {
+    if (processedImg && (processedImg.src.includes('/processed/') || processedImg.src.includes('/api/images/serve/processed/'))) {
         try {
             const url = new URL(processedImg.src, window.location.origin);
             const parts = url.pathname.split('/');
@@ -897,12 +980,20 @@ function getProcessedFilename() {
     return null;
 }
 
+function getDownloadExtension() {
+    const select = document.getElementById('download-format');
+    if (select && select.value) return select.value.toLowerCase();
+    return 'jpg'; // default fallback
+}
+
+
+
 function handleDownload() {
     const processedFilename = getProcessedFilename();
-    
+
     if (processedFilename) {
-        const downloadUrl = `/download/${processedFilename}`;
-        
+        const downloadUrl = `/api/images/download/${processedFilename}`;
+
         // Create temporary link and click it
         const link = document.createElement('a');
         link.href = downloadUrl;
@@ -910,7 +1001,7 @@ function handleDownload() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         ImageCraftApp.showFlashMessage('Download started!', 'success');
         refreshUsageCounters();
     } else {
@@ -936,11 +1027,11 @@ function initializeCropTool() {
 function showResizeDialog() {
     const width = prompt('Enter width (pixels):');
     const height = prompt('Enter height (pixels):');
-    
+
     if (width && height) {
         const widthNum = parseInt(width);
         const heightNum = parseInt(height);
-        
+
         if (widthNum > 0 && heightNum > 0 && widthNum <= 5000 && heightNum <= 5000) {
             runOperation('resize', { width: widthNum, height: heightNum });
         } else {
@@ -950,11 +1041,11 @@ function showResizeDialog() {
 }
 
 // --- Session Reset on New Image ---
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
     // If new image uploaded, reset session for this image only
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
-        uploadForm.addEventListener('submit', function() {
+        uploadForm.addEventListener('submit', function () {
             resetSession(getFilenameFromPath());
         });
     }
@@ -970,11 +1061,11 @@ function setupAIEdit() {
     if (!aiBtn || !aiPrompt) return;
     aiBtn.disabled = false;
     aiBtn.innerText = 'AI Edit';
-    aiPrompt.addEventListener('input', function() {
+    aiPrompt.addEventListener('input', function () {
         if (aiCounter) aiCounter.innerText = `${aiPrompt.value.length}/250`;
         aiBtn.disabled = aiPrompt.value.trim().length === 0;
     });
-    aiBtn.addEventListener('click', function() {
+    aiBtn.addEventListener('click', function () {
         if (!usageManager.canUseAI()) {
             usageManager.showUpgradePrompt('AI edit limit reached. Upgrade for unlimited AI edits.');
             return;
@@ -993,50 +1084,52 @@ function setupAIEdit() {
         const strength = aiStrength ? parseFloat(aiStrength.value) : 0.75;
         const steps = aiSteps ? parseInt(aiSteps.value) : 30;
         showEditorLoading(true, 'AI editing...');
-        fetch(`/ai-edit-task/${filename}`, {
+        fetch('/api/ai/edit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
             body: JSON.stringify({
-                prompt,
-                processed,
+                filename: filename,
+                prompt: prompt,
+                processed: processed,
                 session_id: sessionId,
-                strength,
-                steps
+                strength: strength,
+                steps: steps
             })
         })
-        .then(async res => {
-            let data;
-            try { data = await res.json(); } catch (e) { data = { success: false, error: 'Server error' }; }
-            if (!res.ok && !data.error) data.error = `HTTP ${res.status}`;
-            return data;
-        })
-        .then(data => {
-            if (data.upgrade_required) {
-                usageManager.showUpgradePrompt(data.error || 'Upgrade required for this feature.');
-                showEditorLoading(false);
-                document.dispatchEvent(new Event('editor:operation-complete'));
-                return;
-            }
-            if (data.job_id) {
-                pollJobStatus(data.job_id, 'ai_edit', sessionId);
-                refreshUsageCounters();
-            } else {
+            .then(async res => {
+                let data;
+                try { data = await res.json(); } catch (e) { data = { success: false, error: 'Server error' }; }
+                if (!res.ok && !data.error) data.error = `HTTP ${res.status}`;
+                return data;
+            })
+            .then(data => {
+                if (data.upgrade_required) {
+                    usageManager.showUpgradePrompt(data.error || 'Upgrade required for this feature.');
+                    showEditorLoading(false);
+                    document.dispatchEvent(new Event('editor:operation-complete'));
+                    return;
+                }
+                if (data.job_id) {
+                    pollJobStatus(data.job_id, 'ai_edit', sessionId);
+                    refreshUsageCounters();
+                } else {
+                    showEditorLoading(false);
+                    aiBtn.disabled = false;
+                    aiBtn.innerText = 'AI Edit';
+                    ImageCraftApp.showFlashMessage(data.error || 'Failed to start AI edit', 'error');
+                }
+            })
+            .catch(err => {
                 showEditorLoading(false);
                 aiBtn.disabled = false;
                 aiBtn.innerText = 'AI Edit';
-                ImageCraftApp.showFlashMessage(data.error || 'Failed to start AI edit', 'error');
-            }
-        })
-        .catch(err => {
-            showEditorLoading(false);
-            aiBtn.disabled = false;
-            aiBtn.innerText = 'AI Edit';
-            ImageCraftApp.showFlashMessage('An error occurred while starting AI edit.', 'error');
-            console.error('[editor.js] AI AJAX error:', err);
-        });
+                ImageCraftApp.showFlashMessage('An error occurred while starting AI edit.', 'error');
+                console.error('[editor.js] AI AJAX error:', err);
+            });
     });
 }
 
@@ -1105,14 +1198,29 @@ function getSessionIndicator(tab) {
     return document.getElementById('session-indicator');
 }
 
-window.addEventListener('DOMContentLoaded', function() {
-    setupAIEdit();
+// --- Session Reset on New Image ---
+window.addEventListener('DOMContentLoaded', function () {
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function () {
+            resetSession(getFilenameFromPath());
+        });
+    }
 });
 
-// Export functions for use in templates
+// --- AI setup ---
+window.addEventListener('DOMContentLoaded', function () {
+    setupAIEdit();
+    setupAIControls();
+});
+
+// Export all major editor methods
 window.ImageEditor = {
     openCropModal,
     closeCropModal,
     openResizeModal,
-    closeResizeModal
+    closeResizeModal,
+    undoLastOperation,
+    redoLastOperation,
+    runOperation
 };

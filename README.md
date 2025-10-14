@@ -2,7 +2,7 @@
 
 A powerful web-based image editing application with AI-powered features, including traditional editing tools, AI image enhancement, and **text-to-image generation** (like "nano banana").
 
-## 🌟 Key Features
+## Key Features
 
 ### Traditional Image Editing
 - **Basic Operations:** Rotate, flip, crop, resize
@@ -28,7 +28,7 @@ A powerful web-based image editing application with AI-powered features, includi
 - Subscription management portal
 - Download history tracking
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install dependencies
@@ -49,7 +49,7 @@ python run.py           # Flask App
 
 Visit `http://localhost:5000` and start editing!
 
-## 📚 Documentation
+## Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Installation and setup guide
 - **[UPDATES.md](UPDATES.md)** - Comprehensive feature documentation

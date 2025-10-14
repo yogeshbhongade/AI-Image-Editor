@@ -5,6 +5,20 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
 {% endblock %}
 
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set background images from data attributes
+    document.querySelectorAll('[data-bg-url]').forEach(function(element) {
+        const bgUrl = element.getAttribute('data-bg-url');
+        if (bgUrl) {
+            element.style.backgroundImage = 'url("' + bgUrl + '")';
+        }
+    });
+});
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="page-wrapper">
   <main class="content">
@@ -23,18 +37,18 @@
       <div class="stats-grid">
         <div class="stat-card">
           <i class="fa-solid fa-images"></i>
-          <p class="stat">{{ upload_count or 0 }}</p>
+          <p class="stat">{{ user_stats.uploads if user_stats else 0 }}</p>
           <p class="title">Images Uploaded</p>
         </div>
         <div class="stat-card">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <p class="stat">{{ processed_count or 0 }}</p>
+          <p class="stat">{{ user_stats.processed if user_stats else 0 }}</p>
           <p class="title">Images Edited</p>
         </div>
         <div class="stat-card">
           <i class="fa-solid fa-clock"></i>
-          <p class="stat">{{ recent_uploads|length }}</p>
-          <p class="title">Recent Uploads</p>
+          <p class="stat">{{ recent_files|length if recent_files else 0 }}</p>
+          <p class="title">Recent Files</p>
         </div>
       </div>
     </section>
@@ -43,10 +57,10 @@
     <section>
       <h2>Quick Actions</h2>
       <div class="action-buttons">
-        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+        <a href="{{ url_for('core.editing') }}" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> Upload & Edit New Image
         </a>
-        <a href="{{ url_for('upload.my_images') }}" class="btn btn-secondary">
+        <a href="{{ url_for('core.my_images') }}" class="btn btn-secondary">
           <i class="fa-solid fa-folder-open"></i> View My Images
         </a>
         <a href="{{ url_for('core.downloads') }}" class="btn btn-secondary">
@@ -56,28 +70,33 @@
     </section>
 
     <!-- Recent Images -->
-    {% if recent_processed %}
+    {% if recent_files %}
     <section>
-      <h2>Recently Edited Images</h2>
+      <h2>Recent Files</h2>
       <div class="grid-responsive">
-        {% for image in recent_processed[:6] %}
+        {% for file in recent_files[:6] %}
         <div class="card">
-          <div class="thumb-square" style='background-image:url("{{ url_for('upload.show_processed', filename=image.processed_filename) }}");'></div>
-          <p class="small">{{ image.operation|title }}</p>
-          <p class="tiny">{{ image.created_at.strftime('%Y-%m-%d') }}</p>
+          {% if file.type == 'processed' %}
+          <div class="thumb-square" data-bg-url="{{ url_for('images.serve_processed', filename=file.filename) }}"></div>
+          <p class="small">{{ file.operation|title if file.operation else 'Processed' }}</p>
+          {% else %}
+          <div class="thumb-square" data-bg-url="{{ url_for('images.serve_uploaded', filename=file.filename) }}"></div>
+          <p class="small">Upload</p>
+          {% endif %}
+          <p class="tiny">{{ file.created_at.strftime('%Y-%m-%d') if file.created_at else 'Unknown' }}</p>
         </div>
         {% endfor %}
       </div>
     </section>
     {% endif %}
 
-    {% if not recent_processed %}
+    {% if not recent_files %}
     <section class="empty-state">
       <div class="empty-state-content">
         <i class="fa-solid fa-image icon"></i>
         <h3 class="title">No images edited yet</h3>
         <p class="subtitle">Start by uploading and editing your first image!</p>
-        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+        <a href="{{ url_for('core.editing') }}" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> Get Started
         </a>
       </div>

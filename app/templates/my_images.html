@@ -22,7 +22,7 @@
       </div>
       <div class="header-actions">
         {% if current_user.is_authenticated and current_user.subscription_status == 'premium' %}
-        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+        <a href="{{ url_for('core.editing') }}" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> New Edit
         </a>
         {% endif %}
@@ -64,8 +64,8 @@
     <div class="images-grid">
       {% for image in images %}
       <div class="image-card" data-operation="{{ image.operation }}" data-date="{{ image.created_at.strftime('%Y-%m-%d') }}">
-        <div class="image-preview" data-bg-url="{{ url_for('upload.show_processed', filename=image.processed_filename) }}">
-          <noscript><img src="{{ url_for('upload.show_processed', filename=image.processed_filename) }}" alt="{{ image.processed_filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
+        <div class="image-preview" data-bg-url="{{ url_for('images.serve_processed', filename=image.processed_filename) }}">
+          <noscript><img src="{{ url_for('images.serve_processed', filename=image.processed_filename) }}" alt="{{ image.processed_filename }}" style="width:100%;height:180px;object-fit:cover;" /></noscript>
           <input type="checkbox" class="image-checkbox" value="{{ image._id }}">
         </div>
         <div class="image-info">
@@ -81,10 +81,10 @@
             {% endif %}
           </div>
           <div class="image-actions">
-            <a href="{{ url_for('upload.show_processed', filename=image.processed_filename) }}" target="_blank" class="btn-icon" title="View">
+            <a href="{{ url_for('images.serve_processed', filename=image.processed_filename) }}" target="_blank" class="btn-icon" title="View">
               <i class="fa-solid fa-eye"></i>
             </a>
-            <a href="{{ url_for('upload.download_image', filename=image.processed_filename) }}" class="btn-icon" title="Download">
+            <a href="{{ url_for('images.download_file', filename=image.processed_filename) }}" class="btn-icon" title="Download">
               <i class="fa-solid fa-download"></i>
             </a>
             <button data-delete-id="{{ image._id }}" data-image-name="{{ image.processed_filename }}" class="btn-icon btn-danger" title="Delete" type="button">
@@ -102,7 +102,7 @@
         <i class="fa-solid fa-images empty-state-icon"></i>
         <h3>No images found</h3>
         <p>You haven't edited any images yet. Start creating!</p>
-        <a href="{{ url_for('upload.editing') }}" class="btn btn-primary">
+        <a href="{{ url_for('core.editing') }}" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> Upload & Edit First Image
         </a>
       </div>

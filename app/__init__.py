@@ -1,20 +1,53 @@
 from flask import Flask
-from app.routes import auth, core, edit_async, upload
-from app.config import Config
-from app import extensions
-from app.security import load_user
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 
-def create_app():
+from app.core.config import get_config
+from app.core.database import init_db
+from app.models.user import UserService
+
+
+def create_app(config_name=None):
+    """Create and configure Flask application"""
     app = Flask(__name__)
-    app.config.from_object(Config)
-
-    extensions.init_app(app)
-
-    extensions.login_manager.user_loader(load_user)
-
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(core.bp)
-    app.register_blueprint(edit_async.bp)
-    app.register_blueprint(upload.bp)
-
+    
+    # Load configuration
+    config = get_config(config_name)
+    app.config.from_object(config)
+    
+    # Validate configuration
+    config_issues = config.validate_config()
+    if config_issues:
+        print("⚠️ Configuration issues found:")
+        for issue in config_issues:
+            print(f"  - {issue}")
+    
+    # Initialize database
+    init_db(app)
+    
+    # Initialize CSRF protection
+    csrf = CSRFProtect()
+    csrf.init_app(app)
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
+    
+    # User loader for Flask-Login
+    user_service = UserService()
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return user_service.get_user_by_id(user_id)
+    
+    # Register blueprints
+    from app.api import register_blueprints
+    register_blueprints(app)
+    
+    # Register error handlers
+    from app.api.error_handlers import register_error_handlers
+    register_error_handlers(app)
+    
     return app

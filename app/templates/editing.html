@@ -153,9 +153,9 @@
         <div class="canvas-aspect upload-area">
           {% if filename %}
           {% if processed_filename %}
-          <img src="{{ url_for('upload.show_processed', filename=processed_filename) }}" alt="Processed image" class="canvas-image" aria-live="polite" aria-busy="false">
+          <img src="{{ url_for('images.serve_processed', filename=processed_filename) }}" alt="Processed image" class="canvas-image" aria-live="polite" aria-busy="false">
           {% else %}
-          <img src="{{ url_for('upload.show_uploaded', filename=filename) }}" alt="Uploaded image" class="canvas-image" aria-live="polite" aria-busy="false">
+          <img src="{{ url_for('images.serve_uploaded', filename=filename) }}" alt="Uploaded image" class="canvas-image" aria-live="polite" aria-busy="false">
           {% endif %}
           {% else %}
           <div class="upload-placeholder">
@@ -164,7 +164,7 @@
             </div>
             <h2 class="upload-title">Upload an Image to Start</h2>
             <h3 class="upload-subtitle">Drag and drop or click to upload your image</h3>
-            <form id="uploadForm" method="POST" action="{{ url_for('upload.upload_file') }}" enctype="multipart/form-data" autocomplete="off" novalidate>
+            <form id="uploadForm" method="POST" action="{{ url_for('images.upload_image') }}" enctype="multipart/form-data" autocomplete="off" novalidate>
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <input type="file" id="fileInput" name="file" accept="image/png,image/jpeg,image/jpg,image/gif" required style="display:none;" />
               <button type="button" id="uploadBtnHero" class="btn btn-primary btn-upload-large"><i class="fa-solid fa-upload"></i> Upload</button>
