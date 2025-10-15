@@ -25,7 +25,9 @@ def upload_image():
         
         # Check upload limits
         if not subscription_service.can_perform_action(current_user.id, 'edit'):
-            raise UsageLimitError('edit', 50, 50)  # Assuming limit reached
+            limits = subscription_service.get_usage_limits(current_user.id)
+            current_usage = subscription_service.get_current_usage(current_user.id)
+            raise UsageLimitError('edit', limits.get('edit', 50), current_usage.get('edit', 0))
         
         # Get uploaded file
         if 'file' not in request.files:
@@ -74,7 +76,9 @@ def process_image():
         
         # Check usage limits
         if not subscription_service.can_perform_action(current_user.id, 'edit'):
-            raise UsageLimitError('edit', 50, 50)
+            limits = subscription_service.get_usage_limits(current_user.id)
+            current_usage = subscription_service.get_current_usage(current_user.id)
+            raise UsageLimitError('edit', limits.get('edit', 50), current_usage.get('edit', 0))
         
         # Check if operation requires premium
         subscription = subscription_service.get_user_subscription(current_user.id)
@@ -106,6 +110,9 @@ def process_image():
             parameters=parameters,
             is_premium=subscription.is_premium
         )
+        
+        # Increment usage counter after successful job creation
+        subscription_service.increment_usage(current_user.id, 'edit')
         
         return jsonify({
             'success': True,

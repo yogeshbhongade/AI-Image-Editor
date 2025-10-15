@@ -10,6 +10,7 @@ from .core import core_bp
 from .images import images_bp
 from .ai import ai_bp
 from .admin import admin_bp
+from .subscription import subscription_bp
 
 
 def register_blueprints(app: Flask):
@@ -26,6 +27,9 @@ def register_blueprints(app: Flask):
     
     # AI routes
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
+    
+    # Subscription/Payment routes
+    app.register_blueprint(subscription_bp)
     
     # Admin routes
     app.register_blueprint(admin_bp, url_prefix='/admin')

@@ -361,11 +361,15 @@ generateBtn.addEventListener('click', async () => {
   generationStatus.textContent = 'Starting generation...';
 
   try {
-    const response = await fetch('/generate-task', {
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    const response = await fetch('/api/ai/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken || ''
       },
       body: JSON.stringify({ prompt, width, height, steps })
     });
@@ -387,7 +391,7 @@ generateBtn.addEventListener('click', async () => {
 });
 
 function pollJobStatus(jobId, attempt = 0) {
-  fetch(`/job-status/${jobId}`, {
+  fetch(`/api/images/job-status/${jobId}`, {
     headers: { 'X-Requested-With': 'XMLHttpRequest' }
   })
   .then(res => res.json())
@@ -398,7 +402,7 @@ function pollJobStatus(jobId, attempt = 0) {
 
       const filename = data.result.generated_filename || data.result.processed_filename;
       const imgElement = document.createElement('img');
-      imgElement.src = `/processed/${filename}?t=${Date.now()}`;
+      imgElement.src = `/api/images/serve/processed/${filename}?t=${Date.now()}`;
       imgElement.className = 'generated-image';
       imgElement.alt = 'Generated image';
 
@@ -436,7 +440,7 @@ function pollJobStatus(jobId, attempt = 0) {
 }
 
 function downloadImage(filename) {
-  window.location.href = `/download/${filename}`;
+  window.location.href = `/api/images/download/${filename}`;
   if (usageManager) usageManager.refresh();
 }
 

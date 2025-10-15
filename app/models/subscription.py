@@ -196,16 +196,15 @@ class SubscriptionService:
     
     def get_current_usage(self, user_id: str) -> Dict[str, int]:
         """Get current usage for user"""
-        # Use start and end of today to query datetime range
+        # Use start of today to match exactly with increment_usage method
         today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        today_end = today_start + timedelta(days=1)
         
         usage_data = {}
         for usage_type in UsageType:
             usage = self.usage_collection.find_one({
                 'user_id': user_id,
                 'usage_type': usage_type.value,
-                'date': {'$gte': today_start, '$lt': today_end}
+                'date': today_start  # Match exactly with stored date
             })
             usage_data[usage_type.value] = usage.get('count', 0) if usage else 0
         
@@ -244,13 +243,17 @@ class SubscriptionService:
     
     def can_perform_action(self, user_id: str, usage_type: str) -> bool:
         """Check if user can perform action based on usage limits"""
-        limits = self.get_usage_limits(user_id)
-        current_usage = self.get_current_usage(user_id)
-        
-        limit = limits.get(usage_type, 0)
-        used = current_usage.get(usage_type, 0)
-        
-        return used < limit
+        try:
+            limits = self.get_usage_limits(user_id)
+            current_usage = self.get_current_usage(user_id)
+            
+            limit = limits.get(usage_type, 0)
+            used = current_usage.get(usage_type, 0)
+            
+            return used < limit
+        except Exception as e:
+            # Default to allowing action on error to avoid blocking users
+            return True
     
     def get_usage_stats(self, user_id: str) -> Dict[str, Any]:
         """Get comprehensive usage statistics"""

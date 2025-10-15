@@ -69,11 +69,13 @@ class FileService:
             raise AuthorizationError("Access denied to this file")
         
         file_path = self.config.get_upload_path(filename)
-        
         if not os.path.exists(file_path):
             raise FileNotFoundError(filename)
         
-        return send_file(file_path, mimetype='image/jpeg')
+        # Use proper mimetype detection
+        from app.core.utils import get_mime_type
+        mime_type = get_mime_type(file_path)
+        return send_file(file_path, mimetype=mime_type)
     
     def serve_processed_file(self, filename: str, user_id: str):
         """Serve processed file with security checks"""
@@ -88,7 +90,10 @@ class FileService:
         if not os.path.exists(file_path):
             raise FileNotFoundError(filename)
         
-        return send_file(file_path, mimetype='image/jpeg')
+        # Use proper mimetype detection
+        from app.core.utils import get_mime_type
+        mime_type = get_mime_type(file_path)
+        return send_file(file_path, mimetype=mime_type)
     
     def download_file(self, filename: str, user_id: str):
         """Download file with logging"""
@@ -111,11 +116,15 @@ class FileService:
             file_size=image.file_size
         )
         
+        # Use proper mimetype detection
+        from app.core.utils import get_mime_type
+        mime_type = get_mime_type(file_path)
+        
         return send_file(
             file_path,
             as_attachment=True,
             download_name=filename,
-            mimetype='image/jpeg'
+            mimetype=mime_type
         )
     
     def delete_file(self, filename: str, user_id: str, file_type: str = 'processed') -> bool:

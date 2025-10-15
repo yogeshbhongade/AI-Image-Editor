@@ -348,7 +348,8 @@ class QueueService:
                 try:
                     metadata_str = self.redis_conn.get(key)
                     if metadata_str:
-                        metadata = json.loads(metadata_str)
+                        # Fixed: Decode bytes before JSON parsing
+                        metadata = json.loads(metadata_str.decode('utf-8'))
                         if metadata.get('user_id') == user_id:
                             job_id = key.decode('utf-8').split(':')[1]
                             job_status = self.get_job_status(job_id)
@@ -397,10 +398,11 @@ class QueueService:
         try:
             if self.redis_conn:
                 key = f"job_meta:{job_id}"
+                # Fixed: Use correct setex syntax (name, time, value)
                 self.redis_conn.setex(
                     key,
-                    timedelta=86400,  # 24 hours
-                    value=json.dumps(metadata)
+                    86400,  # 24 hours in seconds
+                    json.dumps(metadata)
                 )
             else:
                 # Store in dummy store if Redis not available
@@ -418,7 +420,8 @@ class QueueService:
                 key = f"job_meta:{job_id}"
                 metadata_str = self.redis_conn.get(key)
                 if metadata_str:
-                    return json.loads(metadata_str)
+                    # Fixed: Decode bytes before JSON parsing
+                    return json.loads(metadata_str.decode('utf-8'))
             else:
                 # Check dummy store
                 with _dummy_jobs_lock:
